@@ -1,19 +1,21 @@
 import PySimpleGUI as sg
 
-sg.theme('DarkBlue')
+sg.theme('BluePurple')
 
 initialWidth=951
 initialHeight=540
+font = ("Arial", 15)
+
 
 header = [[ 
     sg.Text('Bitte Ausweis scannen') 
 ]]
 
-product0 = [[ 
+product0 = [[
     sg.Column( [[ sg.Text('Getränk') ]] ), 
-    sg.Push(), 
+    sg.Push(),
     sg.Column( [[ sg.Text('15€') ]] ), 
-    sg.Column( [[ sg.Button('X') ]] )
+    sg.Column( [[ sg.Button('X', size=5) ]] )
 ]] 
 
 sum = [[ 
@@ -40,6 +42,7 @@ layout = [
     [ sg.Frame( '', footer, expand_x=True ) ]
 ]
 
+
 # Create the Window
 window = sg.Window (
                     'Window Title', 
@@ -47,7 +50,8 @@ window = sg.Window (
                     no_titlebar=False,  
                     size=(initialWidth,initialHeight), 
                     location=(0,0), 
-                    keep_on_top=True
+                    keep_on_top=True,
+                    font=font
                 )
 window.Resizable=True
 
