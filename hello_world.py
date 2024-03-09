@@ -1,34 +1,55 @@
 import PySimpleGUI as sg
 
-sg.theme('Dark Green 7')
+sg.theme('DarkBlue')
 
-width=951
-height=540
-padding=width*0.01
-effectiveWidth=width-2*padding
-effectiveHeight=height-2*padding
-headerHeight=effectiveHeight*0.1
-productListHeight=effectiveHeight*0.75
-footerHeight=effectiveHeight*0.15
+initialWidth=951
+initialHeight=540
 
-header = [[ sg.Text('Bitte Ausweis scannen', expand_x=True) ]]
-productList =   [[ 
-                sg.Column( [[sg.Text('Spezi')]], element_justification='l'), 
-                sg.Column( [[sg.Text('15€')]], element_justification='r' ), 
-                sg.Column( [[sg.Button('X')]], element_justification='r' )  
-            ]]
-footer = [[ sg.Button('Reset'), sg.Button('Buchen') ]]
+header = [[ 
+    sg.Text('Bitte Ausweis scannen') 
+]]
+
+product0 = [[ 
+    sg.Column( [[ sg.Text('Getränk') ]] ), 
+    sg.Push(), 
+    sg.Column( [[ sg.Text('15€') ]] ), 
+    sg.Column( [[ sg.Button('X') ]] )
+]] 
+
+sum = [[ 
+    sg.Column( [[sg.Text('Summe')]] ), 
+    sg.Push(), 
+    sg.Column( [[sg.Text('80€')]] )
+]]
+
+productList = [
+    [ product0 ],
+    [ sg.VPush() ], 
+    [ sg.HorizontalSeparator() ],
+    [ sum ]
+]
+
+footer = [[ 
+    # sg.Button('Reset'), sg.Push() ,sg.Button('Buchen')
+    sg.Button( 'Reset', size=20 ), sg.Button('Buchen', expand_x=True ) 
+]]
 
 layout = [
-            [sg.Frame( 'Fachschaftsmitglied', header , size=(effectiveWidth, headerHeight) )],
-            [sg.Frame( 'Einkaufsliste', productList, size=(effectiveWidth, productListHeight) )],
-            [sg.Frame( '', footer, size=(effectiveWidth, footerHeight) )]
-        ]
-
-
+    [ sg.Frame( 'Fachschaftsmitglied', header , expand_x=True, element_justification='center' ) ],
+    [ sg.Frame( 'Einkaufsliste', productList , expand_x=True, expand_y=True ) ],
+    [ sg.Frame( '', footer, expand_x=True ) ]
+]
 
 # Create the Window
-window = sg.Window('Window Title', layout, no_titlebar=False, location=(0,0), size=(width,height), keep_on_top=True)
+window = sg.Window (
+                    'Window Title', 
+                    layout, 
+                    no_titlebar=False,  
+                    size=(initialWidth,initialHeight), 
+                    location=(0,0), 
+                    keep_on_top=True
+                )
+window.Resizable=True
 
 
 # Event Loop to process "events" and get the "values" of the inputs
