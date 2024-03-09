@@ -1,10 +1,9 @@
 import PySimpleGUI as sg
 
 sg.theme('BluePurple')
-
+font = ("Arial", 15)
 initialWidth=951
 initialHeight=540
-font = ("Arial", 15)
 
 
 header = [[ 
@@ -45,14 +44,14 @@ layout = [
 
 # Create the Window
 window = sg.Window (
-                    'Window Title', 
-                    layout, 
-                    no_titlebar=False,  
-                    size=(initialWidth,initialHeight), 
-                    location=(0,0), 
-                    keep_on_top=True,
-                    font=font
-                )
+    'Window Title', 
+    layout, 
+    no_titlebar=False,  
+    size=(initialWidth,initialHeight), 
+    location=(0,0), 
+    keep_on_top=True,
+    font=font
+)
 window.Resizable=True
 
 
