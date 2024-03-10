@@ -1,0 +1,53 @@
+CREATE DATABASE `km3003` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+
+CREATE TABLE `users` (
+  `user_id` int NOT NULL AUTO_INCREMENT,
+  `barcode` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `current_balance` decimal(15,2) NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `barcode_UNIQUE` (`barcode`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `products` (
+  `product_id` int NOT NULL,
+  `barcode` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sell_price` decimal(15,2) unsigned NOT NULL,
+  `buy_price` decimal(15,2) unsigned NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`product_id`),
+  UNIQUE KEY `barcode_UNIQUE` (`barcode`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+CREATE TABLE `deposits` (
+  `deposit_id` int NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `amount` decimal(15,2) NOT NULL,
+  `reason` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`deposit_id`),
+  KEY `user_id_idx` (`user_id`),
+  CONSTRAINT `fk_users_deposits` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `purchases` (
+  `purchase_id` int NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `product_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `price_then` decimal(15,2) NOT NULL,
+  PRIMARY KEY (`purchase_id`),
+  KEY `product_id_idx` (`product_id`),
+  KEY `user_id_idx` (`user_id`),
+  CONSTRAINT `fk_products_purchases` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_users_purchases` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

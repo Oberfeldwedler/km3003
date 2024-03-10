@@ -41,6 +41,12 @@ layout = [
     [ sg.Frame( '', footer, expand_x=True ) ]
 ]
 
+# class Product:
+#     barcode=""
+#     price
+
+
+
 
 # Create the Window
 window = sg.Window (
@@ -58,6 +64,9 @@ window.Resizable=True
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read()
+
+
+
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
     print('You entered ', values[0])
