@@ -1,4 +1,5 @@
 import PySimpleGUI as sg
+import mysql.connector
 
 sg.theme('BluePurple')
 font = ("Arial", 15)
@@ -41,11 +42,31 @@ layout = [
     [ sg.Frame( '', footer, expand_x=True ) ]
 ]
 
-# class Product:
-#     barcode=""
-#     price
+class mySqlCaller_Exception(Exception):
+    """Raised when an error occurred during the communication with MySQL Server"""
 
+class mySqlCaller:  
 
+    cnx = None
+
+    def __init__(self, hostAddress, portNumber, username, password, database):
+        self.hostAddress = hostAddress
+        self.portNumber = int(portNumber)
+        self.username = username
+        self.password = password
+        self.database = database
+
+    def establishConnectionToServer(self):
+        try:
+            cnx = mysql.connector.connect(user=self.username, password=self.password,
+                                    host=self.hostAddress, port=self.portNumber,
+                                    database=self.database)
+        except mysql.connector.Error as err:
+            raise mySqlCaller_Exception(
+                f"ERROR: Could not establish a Database connection to {self.hostAddress}:{self.portNumber}")
+        
+    # def closeConnectionToServer(self):
+    #     cnx.cursor()
 
 
 # Create the Window
