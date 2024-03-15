@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 import mysql.connector
+import configparser
 
 sg.theme('BluePurple')
 font = ("Arial", 15)
