@@ -46,15 +46,12 @@ class mySqlCaller_Exception(Exception):
     """Raised when an error occurred during the communication with MySQL Server"""
 
 class mySqlCaller:  
-
-    cnx = None
-
-    def __init__(self, hostAddress, portNumber, username, password, database):
-        self.hostAddress = hostAddress
-        self.portNumber = int(portNumber)
-        self.username = username
-        self.password = password
-        self.database = database
+    def __init__(self, mySqlSettingsDict):
+        self.hostAddress = mySqlSettingsDict["hostAddress"]
+        self.portNumber = int(mySqlSettingsDict["portNumber"])
+        self.username = mySqlSettingsDict["username"]
+        self.password = mySqlSettingsDict["password"]
+        self.database = mySqlSettingsDict["database"]
 
     def establishConnectionToServer(self):
         try:
@@ -80,6 +77,10 @@ window = sg.Window (
     font=font
 )
 window.Resizable=True
+config = configparser.ConfigParser()
+config.read('km3003.conf')
+mySqlSettingsDict = dict(config['mysql'])
+
 
 
 # Event Loop to process "events" and get the "values" of the inputs
