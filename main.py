@@ -1,8 +1,11 @@
+import queue
+import serial
+import datetime
+import threading
+import configparser
 import PySimpleGUI as sg
 import mysql.connector
 from mysql.connector import errorcode
-import configparser
-
 
 sg.theme('BluePurple')
 font = ("Arial", 15)
@@ -31,7 +34,7 @@ productList = [
 ]
 footer = [[ 
     # sg.Button('Reset'), sg.Push() ,sg.Button('Buchen')
-    sg.Button( 'Reset', size=20 ), sg.Button('Buchen', expand_x=True ) 
+    sg.Button( 'Reset', size=20 ), sg.Button('Checkout', expand_x=True ) 
 ]]
 layout = [
     [ sg.Frame( 'Fachschaftsmitglied', header , expand_x=True, element_justification='center' ) ],
@@ -72,6 +75,7 @@ class MySqlCaller:
             self.cnx = mysql.connector.connect(user=self.username, password=self.password,
                                     host=self.hostAddress, port=self.portNumber,
                                     database=self.database)
+# Why no error when database is available?
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 print("Something is wrong with your user name or password")
@@ -151,11 +155,22 @@ class MySqlCaller:
 
 
 class ShoppingCart:
-    products_list = None
-    user = None
-
     def __init__(self, mySqlCaller):
         self.mySqlCaller = mySqlCaller
+        self.products_list = None
+        self.user = None
+
+    def resetTimestamp(self):
+        timestamp = datetime.datetime.now()
+
+    def reset(self):
+        self.products_list = None
+        self.user = None
+
+    def checkout(self):
+        for product in self.productList:
+            self.insertPurchaseIntoDatabase(self, product.id, self.user.id, self.price_then)
+        self.reset()
 
 
 
@@ -163,45 +178,86 @@ config = configparser.ConfigParser()
 config.read('km3003.conf')
 mysql_settings_dict = dict(config['mysql'])
 
+timeout = datetime.timedelta(seconds=config['general']['screen_timeout'])
+
 database_caller = MySqlCaller(mysql_settings_dict)
 database_caller.establishConnection()
 database_caller.createDictCursor()
 
 mainShoppingCart = ShoppingCart(database_caller)
 
-test_user = database_caller.getUserFromDatabase("301260000015887")
-print(test_user.name)
-test_product =database_caller.getProductFromDatabase("20290443")
-print(test_product.name)
+
+q = queue.Queue()
+ser = serial.Serial( 'COM4', 9600, timeout=0, parity=serial.PARITY_EVEN)
+
+def readFromScanner(q, ser):
+    while True:
+        q.put(ser.readline(), block=True, timeout=None)
+
+x = threading.Thread(target=readFromScanner, args=(q, ser), daemon=True)
+x.start()
+
+
+# test_user = database_caller.getUserFromDatabase("301260000015887")
+# print(test_user.name)
+# test_product =database_caller.getProductFromDatabase("20290443")
+# print(test_product.name)
 # result, type = database_caller.runBarcodeAgainstDatabase("301260000015887")
 # print(result)
 
-database_caller.insertPurchaseIntoDatabase(2, 3, 0.4)
+# database_caller.insertPurchaseIntoDatabase(2, 3, 0.4)
 
-
-
-# # Create the Window
-# window = sg.Window (
-#     'Window Title', 
-#     layout, 
-#     no_titlebar=False,  
-#     size=(initialWidth,initialHeight), 
-#     location=(0,0), 
-#     keep_on_top=True,
-#     font=font
-# )
-# window.Resizable=True
+# Create the Window
+window = sg.Window (
+    'Window Title', 
+    layout, 
+    no_titlebar=False,  
+    size=(initialWidth,initialHeight), 
+    location=(0,0), 
+    keep_on_top=True,
+    font=font
+)
+window.Resizable=True
 
 
 
 # Event Loop to process "events" and get the "values" of the inputs
-# while True:
-#     event, values = window.read()
+while True:
+    now = datetime.datetime.now()
+
+    try:
+        item = q.get()
+        mainShoppingCart.resetTimestamp()
+    except queue.Empty: 
+        print("Nothing to do here. Queue is empty.")
+
+    if item: 
+        result, type = database_caller.runBarcodeAgainstDatabase(item)
+        if result == "user":
+            mainShoppingCart.user = result
+        elif result == "product":
+            mainShoppingCart.products_list.append(result)
+        else:
+            print("Barcode not unique in database or unknown.")
+        mainShoppingCart.resetTimestamp()
+
     
+    event, values = window.read()
+    if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+        break
+
+    if event == "Reset":
+        mainShoppingCart.reset()
+
+    if event == "Checkout":
+        mainShoppingCart.checkout()
+
+    # if event == "activity????":
+    #     mainShoppingCart.resetTimestamp()
 
 
-#     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
-#         break
-#     print('You entered ', values[0])
+    if (now-mainShoppingCart.timestamp).total_seconds >= 10:
+        mainShoppingCart.reset()
 
-# window.close()
+
+window.close()
