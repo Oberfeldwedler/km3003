@@ -2,9 +2,9 @@ import datetime
 import configparser
 import PySimpleGUI as sg
 
-from lib import classes
 from lib import mysql
-from lib import Scanner
+from lib import classes
+from lib import scanner
 
 sg.theme('BluePurple')
 font = ("Arial", 15)
@@ -48,13 +48,13 @@ general_settings_dict = dict(config['general'])
 mysql_settings_dict = dict(config['mysql'])
 serial_settings_dict = dict(config['serial'])
 
-
-database_caller = mysql.MySqlCaller(mysql_settings_dict)
+database_caller = mysql.MySql(mysql_settings_dict)
 database_caller.establishConnection()
 database_caller.createDictCursor()
 
+
 km3003 = classes.ShoppingCart(database_caller, general_settings_dict)
-scanner = Scanner.Scanner()
+scanner = scanner.Scanner(serial_settings_dict)
 
 
 
@@ -73,8 +73,8 @@ window.Resizable=True
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
-    now = datetime.datetime.now()
-    print(scanner.getBarcode(self))
+    # now = datetime.datetime.now()
+    # print(scanner.getBarcode(self))
 
     #     result, type = database_caller.runBarcodeAgainstDatabase(item)
     #     if result == "user":

@@ -18,7 +18,8 @@ class Product:
 
 class ShoppingCart:
     def __init__(self, mySqlCaller, general_settings_dict):
-        self.timeout = datetime.timedelta(seconds=general_settings_dict['screen_timeout'])
+        timeout = int(general_settings_dict['screen_timeout'])
+        self.timeout = datetime.timedelta(seconds=timeout)
         self.mySqlCaller = mySqlCaller
         self.products_list = []
         self.user = []

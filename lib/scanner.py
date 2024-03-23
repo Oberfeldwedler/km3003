@@ -5,13 +5,18 @@ import threading
 class Scanner():
     def __init__(self, serialSettingsDict):
         self.q = queue.Queue()
-        # TODO
-        # Make parity and other serial setting configurable
-        self.ser = serial.Serial( serialSettingsDict['port'], serialSettingsDict['baudrate'], timeout=None, parity=serial.PARITY_EVEN) 
+        ser = serial.serial_for_url(serialSettingsDict['port'], do_not_open=True)
+        ser.baudrate = int(serialSettingsDict['baudrate'])
+        ser.bytesize = int(serialSettingsDict['bytesize'])
+        ser.parity = serialSettingsDict['parity']
+        ser.stopbits = int(serialSettingsDict['stopbits'])
+        ser.timeout = None
+        ser.open()
+
         x = threading.Thread(target=self.__readFromScanner, args=(q, ser), daemon=True)
         x.start()
 
-    def __readFromScanner(self, q, ser):
+    def __readFromScanner(self):
         while True:
             self.q.put(self.ser.readline(), block=True, timeout=None)
 
@@ -25,4 +30,4 @@ class Scanner():
         else:
             item = None
         return item
-            
+

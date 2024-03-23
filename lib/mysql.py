@@ -1,11 +1,10 @@
 import mysql.connector
-from lib import User
-from lib import Product
+from lib import classes
 
 class MySqlDataError(Exception):
     """Raised when data fetched from database is inconsistent."""
 
-class MySqlCaller:  
+class MySql:
     def __init__(self, mySqlSettingsDict):
         self.hostAddress = mySqlSettingsDict["hostaddress"]
         self.portNumber = int(mySqlSettingsDict["portnumber"])
@@ -35,7 +34,7 @@ class MySqlCaller:
             rowCount = self.dictCursor.rowcount
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
-                return User(dataDict['id'], barcode, dataDict['name'], dataDict['current_balance'])
+                return classes.User(dataDict['id'], barcode, dataDict['name'], dataDict['current_balance'])
             if rowCount > 1:
                 raise MySqlDataError
             else:
@@ -51,7 +50,7 @@ class MySqlCaller:
             rowCount = self.dictCursor.rowcount
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
-                return Product(dataDict['id'], barcode, dataDict['name'], dataDict['sell_price'])
+                return classes.Product(dataDict['id'], barcode, dataDict['name'], dataDict['sell_price'])
             if rowCount > 1:
                 raise MySqlDataError
             else:
