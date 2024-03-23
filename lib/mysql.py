@@ -20,7 +20,6 @@ class MySql:
         except mysql.connector.Error as err:
             print(err)
 
-
     def createDictCursor(self):
         self.dictCursor = self.cnx.cursor(buffered = True, dictionary = True)
         

@@ -10,33 +10,42 @@ font = ("Arial", 15)
 initialWidth=951
 initialHeight=540
 
-header = [[ 
-    sg.Text('Bitte Ausweis scannen') 
-]]
-product0 = [[
+# header = [[ 
+#     sg.Text('Bitte Ausweis scannen') 
+# ]]
+product_row = [[
     sg.Column( [[ sg.Text('Getränk') ]] ), 
     sg.Push(),
     sg.Column( [[ sg.Text('15€') ]] ), 
-    sg.Column( [[ sg.Button('X', size=5) ]] )
+    sg.Column( [[ sg.Button('X', size=5) ]]) 
 ]] 
-sum = [[ 
+
+sum_row = [[ 
     sg.Column( [[sg.Text('Summe')]] ), 
     sg.Push(), 
     sg.Column( [[sg.Text('80€')]] )
 ]]
-productList = [
-    [ product0 ],
+
+product_list = [
+    [ sg.Col( product_row , expand_x=True, element_justification='center' ) ]
+]
+
+member_row = [[ sg.Text('Bitte Ausweis scannen')  ]]
+
+body = [
+    [ product_list],
     [ sg.VPush() ], 
     [ sg.HorizontalSeparator() ],
-    [ sum ]
+    [ sum_row ]
 ]
-footer = [[ 
-    # sg.Button('Reset'), sg.Push() ,sg.Button('Buchen')
-    sg.Button( 'Zurücksetzen', size=20 ), sg.Button('Buchen', expand_x=True ) 
-]]
+
+footer = [
+    [ sg.Button( 'Zurücksetzen', size=20 ), sg.Button('Buchen', expand_x=True ) ]
+]
+
 layout = [
-    [ sg.Frame( 'Fachschaftsmitglied', header , expand_x=True, element_justification='center' ) ],
-    [ sg.Frame( 'Einkaufsliste', productList , expand_x=True, expand_y=True ) ],
+    [ sg.Frame( 'Fachschaftsmitglied', member_row , expand_x=True, element_justification='center' ) ],
+    [ sg.Frame( 'Einkaufsliste', body , expand_x=True, expand_y=True ) ],
     [ sg.Frame( '', footer, expand_x=True ) ]
 ]
 
@@ -68,34 +77,40 @@ scanner = scanner.Scanner(serial_settings_dict)
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
-    print(".", end="")
     item=scanner.getBarcode()
     if item:
-        shopping_cart.refreshTimer()
+        item = item.strip()
         result, type = database_caller.runBarcodeAgainstDatabase(item)
         if type == "user":
             shopping_cart.user = result
         elif type == "product":
             shopping_cart.products_list.append(result)
+            window.extend_layout(window['-TRACKING SECTION-'], [result.row()])
         else:
             print("Barcode not unique in database or unknown.")
 
-    
+        shopping_cart.refreshResetTimer()
+
+        for product in shopping_cart.products_list:
+            print(product.name)
+
+
     event, values = window.read(timeout=50)
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
-    
-    if event == "RESET_CHECKOUT_TIMER":
-        shopping_cart.reset()
-
-    if event:
-        shopping_cart.refreshResetTimer()
 
     if event == "Reset":
         shopping_cart.reset()
 
     if event == "Checkout":
         shopping_cart.checkout()
+
+    if event == "RESET_CHECKOUT_TIMER":
+        shopping_cart.reset()
+
+    if event:
+        shopping_cart.refreshResetTimer()
+
 
 
 

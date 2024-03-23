@@ -3,6 +3,7 @@ import serial
 import threading
 
 class Scanner():
+
     def __init__(self, serialSettingsDict):
         self.q = queue.Queue()
         self.ser = serial.serial_for_url(serialSettingsDict['port'], do_not_open=True)
@@ -15,11 +16,10 @@ class Scanner():
 
         self.x = threading.Thread(target=self.__readFromScanner, daemon=True)
         self.x.start()
-
+ 
     def __readFromScanner(self):
         while True:
             self.q.put(self.ser.readline(), block=True, timeout=None)
-
 
     def getBarcode(self):
         if self.q.empty() == False:
@@ -30,4 +30,3 @@ class Scanner():
         else:
             item = None
         return item
-

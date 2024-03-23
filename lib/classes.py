@@ -1,3 +1,5 @@
+import PySimpleGUI as sg
+
 
 class User:
     def __init__(self, id, barcode, name, current_balance):
@@ -14,6 +16,16 @@ class Product:
         self.name = name
         self.price = price
 
+    def row(self):
+        product_row = [[
+            sg.Column( [[ sg.Text(self.name) ]] ), 
+            sg.Push(),
+            sg.Column( [[ sg.Text(self.sell_price) ]] ), 
+            sg.Column( [[ sg.Button('X', size=5, k=('DEL_self', self.id) ) ]] ),
+        ]] 
+
+        return product_row
+
 
 class ShoppingCart:
     def __init__(self, mySqlCaller, general_settings_dict, window):
@@ -22,7 +34,7 @@ class ShoppingCart:
         self.window = window
         self.products_list = []
         self.user = []
-        self.refresh_timer_id = self.refreshTimer()
+        self.refresh_timer_id = self.startResetTimer()
 
     def startResetTimer(self):
         refresh_timer_id = self.window.timer_start(self.timeout, key='RESET_CHECKOUT_TIMER', repeating=False)
@@ -30,7 +42,7 @@ class ShoppingCart:
 
     def refreshResetTimer(self):
         self.window.timer_stop(self.refresh_timer_id)
-        self.refresh_timer_id = self.window.startResetTimer()
+        self.refresh_timer_id = self.startResetTimer()
 
     def reset(self):
         self.products_list = []
