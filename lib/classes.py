@@ -16,13 +16,13 @@ class Product:
         self.name = name
         self.price = price
 
-    def row(self):
-        product_row = [[
+    def generateRow(self, item_num):
+        product_row = [
             sg.Column( [[ sg.Text(self.name) ]] ), 
             sg.Push(),
-            sg.Column( [[ sg.Text(self.sell_price) ]] ), 
-            sg.Column( [[ sg.Button('X', size=5, k=('DEL_self', self.id) ) ]] ),
-        ]] 
+            sg.Column( [[ sg.Text(self.price) ]] ), 
+            sg.Column( [[ sg.Button('X', size=5, k=('-DEL-', item_num) ) ]] ),
+        ]
 
         return product_row
 
@@ -32,6 +32,7 @@ class ShoppingCart:
         self.mySqlCaller = mySqlCaller
         self.timeout = 1000*int(general_settings_dict['screen_timeout'])
         self.window = window
+        self.window.metadata = 0
         self.products_list = []
         self.user = []
         self.refresh_timer_id = self.startResetTimer()
@@ -47,6 +48,7 @@ class ShoppingCart:
     def reset(self):
         self.products_list = []
         self.user = []
+        self.window.metadata = 0
         self.window.timer_stop(self.refresh_timer_id)
 
     def checkout(self):

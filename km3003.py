@@ -10,14 +10,11 @@ font = ("Arial", 15)
 initialWidth=951
 initialHeight=540
 
-# header = [[ 
-#     sg.Text('Bitte Ausweis scannen') 
-# ]]
 product_row = [[
     sg.Column( [[ sg.Text('Getränk') ]] ), 
     sg.Push(),
     sg.Column( [[ sg.Text('15€') ]] ), 
-    sg.Column( [[ sg.Button('X', size=5) ]]) 
+    sg.Column( [[ sg.Button('X', size=5, k=('-DEL-', 0)) ]]) 
 ]] 
 
 sum_row = [[ 
@@ -27,18 +24,18 @@ sum_row = [[
 ]]
 
 product_list = [
-    [ sg.Col( product_row , expand_x=True, element_justification='center' ) ]
+    [ sg.Col( [], expand_x=True, k='-PRODUCT_LIST-')],
 ]
 
-member_row = [[ sg.Text('Bitte Ausweis scannen')  ]]
+member_row = [[ sg.Text('Bitte Ausweis scannen') ]]
 
 body = [
-    [ product_list],
+    [ product_list ]
     [ sg.VPush() ], 
     [ sg.HorizontalSeparator() ],
     [ sum_row ]
 ]
-
+ 
 footer = [
     [ sg.Button( 'Zurücksetzen', size=20 ), sg.Button('Buchen', expand_x=True ) ]
 ]
@@ -85,7 +82,8 @@ while True:
             shopping_cart.user = result
         elif type == "product":
             shopping_cart.products_list.append(result)
-            window.extend_layout(window['-TRACKING SECTION-'], [result.row()])
+            window.metadata += 1
+            window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow(window.metadata) ] )
         else:
             print("Barcode not unique in database or unknown.")
 
@@ -95,9 +93,13 @@ while True:
             print(product.name)
 
 
-    event, values = window.read(timeout=50)
+    event, values = window.read(timeout=1000)
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
+
+    # if event:
+    #     print(event[0]) 
+    #     print(event[1]) 
 
     if event == "Reset":
         shopping_cart.reset()
