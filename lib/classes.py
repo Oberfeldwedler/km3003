@@ -28,8 +28,8 @@ class Product:
 
 
 class ShoppingCart:
-    def __init__(self, mySqlCaller, general_settings_dict, window):
-        self.mySqlCaller = mySqlCaller
+    def __init__(self, database_caller, general_settings_dict, window):
+        self.database_caller = database_caller
         self.timeout = 1000*int(general_settings_dict['screen_timeout'])
         self.window = window
         self.window.metadata = 0
@@ -53,5 +53,5 @@ class ShoppingCart:
 
     def checkout(self):
         for product in self.productList:
-            self.insertPurchaseIntoDatabase(self, product.id, self.user.id, self.price_then)
+            self.database_caller.insertPurchaseIntoDatabase(self, product.id, self.user.id, self.price_then)
         self.reset()

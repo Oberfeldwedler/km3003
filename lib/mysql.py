@@ -11,20 +11,36 @@ class MySql:
         self.username = mySqlSettingsDict["username"]
         self.password = mySqlSettingsDict["password"]
         self.database = mySqlSettingsDict["database"]
+        self.cnx = self.establishConnection()
+        
+
+    def closeConnection(self):
+        try:
+            self.cnx.close()
+        except:
+            return
 
     def establishConnection(self):
         try:
-            self.cnx = mysql.connector.connect(user=self.username, password=self.password,
+            cnx = mysql.connector.connect(user=self.username, password=self.password,
                                     host=self.hostAddress, port=self.portNumber,
-                                    database=self.database)
+                                    database=self.database, 
+                                    connect_timeout= 1)
+            print("Connection to database established.")
+            return cnx
         except mysql.connector.Error as err:
             print(err)
+
+    def reEstablishConnection(self):
+        self.closeConnection()
+        self.establishConnection()
+
+    def is_connected(self):
+        return self.cnx.is_connected()
 
     def createDictCursor(self):
         self.dictCursor = self.cnx.cursor(buffered = True, dictionary = True)
         
-    def closeConnection(self):
-        self.cnx.close()
        
     def getUserFromDatabase(self, barcode):
         getUsers = ("SELECT * FROM users WHERE barcode=%s")
