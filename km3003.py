@@ -3,12 +3,13 @@ import PySimpleGUI as sg
 
 from lib import mysql
 from lib import classes
-# from lib import scanner
+from lib import scanner
 
 sg.theme('BluePurple')
 font = ("Arial", 15)
 initialWidth=951
 initialHeight=540
+
 
 product_row = [[
     sg.Column( [[ sg.Text('Getränk') ]] ), 
@@ -70,30 +71,29 @@ window = sg.Window (
 window.Resizable=True
 
 shopping_cart = classes.ShoppingCart(database_caller, general_settings_dict, window)
-# scanner = scanner.Scanner(serial_settings_dict)
+scanner = scanner.Scanner(serial_settings_dict)
 
-# Event Loop to process "events" and get the "values" of the inputs
 while True:
 
     if not database_caller.is_connected():
         database_caller.reEstablishConnection()
         # window.popup("Database Connection Lost")
-        print("No connection to database.")
+        # print("No connection to database.")
         shopping_cart.reset()
         continue
 
-    # item=scanner.getBarcode()
-    # if item:
-    #     item = item.strip()
-    #     result, type = database_caller.runBarcodeAgainstDatabase(item)
-    #     if type == "user":
-    #         shopping_cart.user = result
-    #     elif type == "product":
-    #         shopping_cart.products_list.append(result)
-    #         window.metadata += 1
-    #         window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow(window.metadata) ] )
-    #     else:
-    #         print("Barcode not unique in database or unknown.")
+    item=scanner.getBarcode()
+    if item:
+        item = item.strip()
+        result, type = database_caller.runBarcodeAgainstDatabase(item)
+        if type == "user":
+            shopping_cart.user = result
+        elif type == "product":
+            shopping_cart.products_list.append(result)
+            window.metadata += 1
+            window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow(window.metadata) ] )
+        else:
+            print("Barcode not unique in database or unknown.")
 
         shopping_cart.refreshResetTimer()
 

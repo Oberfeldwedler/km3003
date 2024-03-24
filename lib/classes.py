@@ -23,7 +23,6 @@ class Product:
             sg.Column( [[ sg.Text(self.price) ]] ), 
             sg.Column( [[ sg.Button('X', size=5, k=('-DEL-', item_num) ) ]] ),
         ]
-
         return product_row
 
 
@@ -33,6 +32,7 @@ class ShoppingCart:
         self.timeout = 1000*int(general_settings_dict['screen_timeout'])
         self.window = window
         self.window.metadata = 0
+        self.disabled = False
         self.products_list = []
         self.user = []
         self.refresh_timer_id = self.startResetTimer()

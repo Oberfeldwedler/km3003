@@ -11,7 +11,8 @@ class MySql:
         self.username = mySqlSettingsDict["username"]
         self.password = mySqlSettingsDict["password"]
         self.database = mySqlSettingsDict["database"]
-        self.cnx = self.establishConnection()
+        self.cnx = mysql.connector.connect()
+
         
 
     def closeConnection(self):
@@ -22,21 +23,23 @@ class MySql:
 
     def establishConnection(self):
         try:
-            cnx = mysql.connector.connect(user=self.username, password=self.password,
+            self.cnx = mysql.connector.connect(user=self.username, password=self.password,
                                     host=self.hostAddress, port=self.portNumber,
                                     database=self.database, 
-                                    connect_timeout= 1)
-            print("Connection to database established.")
-            return cnx
+                                    connect_timeout=2)
+            # print("Connection to database established.")
         except mysql.connector.Error as err:
             print(err)
+
+
 
     def reEstablishConnection(self):
         self.closeConnection()
         self.establishConnection()
 
     def is_connected(self):
-        return self.cnx.is_connected()
+        if self.cnx:
+            return self.cnx.is_connected()
 
     def createDictCursor(self):
         self.dictCursor = self.cnx.cursor(buffered = True, dictionary = True)
