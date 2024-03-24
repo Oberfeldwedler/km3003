@@ -38,7 +38,7 @@ class ShoppingCart:
         self.refresh_timer_id = self.startResetTimer()
 
     def startResetTimer(self):
-        refresh_timer_id = self.window.timer_start(self.timeout, key='RESET_CHECKOUT_TIMER', repeating=False)
+        refresh_timer_id = self.window.timer_start(self.timeout, key='-RESET_CHECKOUT_TIMER-', repeating=False)
         return refresh_timer_id
 
     def refreshResetTimer(self):

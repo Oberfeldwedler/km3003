@@ -14,7 +14,7 @@ product_row = [[
     sg.Column( [[ sg.Text('Getränk') ]] ), 
     sg.Push(),
     sg.Column( [[ sg.Text('15€') ]] ), 
-    sg.Column( [[ sg.Button('X', size=5, k=('-DEL-', 0)) ]]) 
+    sg.Column( [[ sg.Button('X', size=5, key=('-DEL-', 0)) ]]) 
 ]] 
 
 sum_row = [[ 
@@ -24,7 +24,7 @@ sum_row = [[
 ]]
 
 product_list = [
-    [ sg.Col( [], expand_x=True, k='-PRODUCT_LIST-')],
+    [ sg.Col( [], expand_x=True, key='-PRODUCT_LIST-')],
 ]
 
 member_row = [[ sg.Text('Bitte Ausweis scannen') ]]
@@ -37,7 +37,7 @@ body = [
 ]
  
 footer = [
-    [ sg.Button( 'Zurücksetzen', size=20 ), sg.Button('Buchen', expand_x=True ) ]
+    [ sg.Button( 'Zurücksetzen', size=20, key='-RESET-'), sg.Button('Buchen', expand_x=True , key='-CHECKOUT-') ]
 ]
 
 layout = [
@@ -101,13 +101,16 @@ while True:
     #     print(event[0]) 
     #     print(event[1]) 
 
-    if event == "Reset":
+    if event[0] == '-DEL-':
+        window[('-ROW-', event[1])].update(visible=False)
+
+    if event == "-RESET-":
         shopping_cart.reset()
 
-    if event == "Checkout":
+    if event == "-CHECKOUT-":
         shopping_cart.checkout()
 
-    if event == "RESET_CHECKOUT_TIMER":
+    if event == "-RESET_CHECKOUT_TIMER-":
         shopping_cart.reset()
 
     if event:
