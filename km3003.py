@@ -74,6 +74,13 @@ scanner = scanner.Scanner(serial_settings_dict)
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
+
+    # if ! database connection present:
+    #     trigger database reconnection
+    #     print message
+    #     disable window somehow
+    #     continue
+
     item=scanner.getBarcode()
     if item:
         item = item.strip()
