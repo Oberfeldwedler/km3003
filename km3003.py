@@ -41,11 +41,17 @@ footer = [
     [ sg.Button( 'Zurücksetzen', size=20, key='-RESET-'), sg.Button('Buchen', expand_x=True , key='-CHECKOUT-') ]
 ]
 
-layout = [
-    [ sg.Frame( 'Fachschaftsmitglied', member_row , expand_x=True, element_justification='center' ) ],
-    [ sg.Frame( 'Einkaufsliste', body , expand_x=True, expand_y=True ) ],
-    [ sg.Frame( '', footer, expand_x=True ) ]
+maintenance_layout = [
+    [ sg.Text("Geht grod ned!") ]
 ]
+
+layout = [
+    [ sg.Frame( 'Fachschaftsmitglied', member_row , expand_x=True, element_justification='center', key= '-HEADER-') ],
+    [ sg.Frame( 'Warenkorb', body , expand_x=True, expand_y=True, key= '-BODY-') ],
+    [ sg.Frame( '', footer, expand_x=True, key= '-FOOTER-' ) ],
+    [ sg.Frame( '', maintenance_layout, expand_x=True, key= '-MAINTENANCE-', visible=False ) ]
+]
+
 
 
 config = configparser.ConfigParser()
@@ -53,10 +59,6 @@ config.read('km3003.conf')
 general_settings_dict = dict(config['general'])
 mysql_settings_dict = dict(config['mysql'])
 serial_settings_dict = dict(config['serial'])
-
-database_caller = mysql.MySql(mysql_settings_dict)
-# database_caller.establishConnection()
-# database_caller.createDictCursor()
 
 # Create the Window
 window = sg.Window (
@@ -70,17 +72,32 @@ window = sg.Window (
 )
 window.Resizable=True
 
+database_caller = mysql.MySql(mysql_settings_dict)
+
 shopping_cart = classes.ShoppingCart(database_caller, general_settings_dict, window)
 scanner = scanner.Scanner(serial_settings_dict)
 
 while True:
 
+    event, values = window.read(timeout=1000)
+    if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+        break
+
     if not database_caller.is_connected():
         database_caller.reEstablishConnection()
-        # window.popup("Database Connection Lost")
-        # print("No connection to database.")
+        window['-HEADER-'].update(visible=False)
+        window['-BODY-'].update(visible=False)
+        window['-FOOTER-'].update(visible=False)
+        window['-MAINTENANCE-'].update(visible=True)
+        shopping_cart.disabled = True
         shopping_cart.reset()
         continue
+    
+    if  shopping_cart.disabled:
+        window['-HEADER-'].update(visible=True)
+        window['-BODY-'].update(visible=True)
+        window['-FOOTER-'].update(visible=True)
+        window['-MAINTENANCE-'].update(visible=False)
 
     item=scanner.getBarcode()
     if item:
@@ -99,11 +116,6 @@ while True:
 
         for product in shopping_cart.products_list:
             print(product.name)
-
-
-    event, values = window.read(timeout=1000)
-    if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
-        break
 
     # if event:
     #     print(event[0]) 

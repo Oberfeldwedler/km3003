@@ -26,8 +26,8 @@ class MySql:
             self.cnx = mysql.connector.connect(user=self.username, password=self.password,
                                     host=self.hostAddress, port=self.portNumber,
                                     database=self.database, 
-                                    connect_timeout=2)
-            # print("Connection to database established.")
+                                    connect_timeout=1)
+            print("Connection to database established.")
         except mysql.connector.Error as err:
             print(err)
 
