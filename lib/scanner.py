@@ -30,3 +30,6 @@ class Scanner():
         else:
             item = None
         return item
+    
+    def close(self):
+        self.ser.close()

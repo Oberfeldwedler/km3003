@@ -146,8 +146,6 @@ while True:
         shopping_cart.refreshResetTimer()
 
 
-
-
-# close mysql stuff
-# close serial stuff
+database_caller.closeConnection()
+scanner.close()
 window.close()
