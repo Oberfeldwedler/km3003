@@ -81,7 +81,6 @@ window = sg.Window (
 window.Resizable=True
 
 database_caller = mysql.MySql(mysql_settings_dict)
-database_caller.establishConnection()
 
 shopping_cart = classes.ShoppingCart(database_caller, general_settings_dict, window)
 scanner = scanner.Scanner(serial_settings_dict)
@@ -146,6 +145,6 @@ while True:
         shopping_cart.refreshResetTimer()
 
 
-database_caller.closeConnection()
 scanner.close()
+database_caller.closeConnection()
 window.close()

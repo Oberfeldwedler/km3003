@@ -1,6 +1,9 @@
+import time
 import queue
 import serial
 import threading
+
+
 
 class Scanner():
 
@@ -19,7 +22,12 @@ class Scanner():
  
     def __readFromScanner(self):
         while True:
-            self.q.put(self.ser.readline(), block=True, timeout=None)
+            try:
+                line = self.ser.readline()
+            except:
+                print("Cannot read from scanner.")
+                time.sleep(0.1)
+            self.q.put(line, block=True, timeout=None)
 
     def getBarcode(self):
         if self.q.empty() == False:
@@ -32,4 +40,5 @@ class Scanner():
         return item
     
     def close(self):
+        self.exit = True
         self.ser.close()
