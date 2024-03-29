@@ -9,7 +9,7 @@ sg.theme('BluePurple')
 font = ("Arial", 15)
 initialWidth=951
 initialHeight=540
-
+  
 
 product_row = [[
     sg.Column( [[ sg.Text('Getränk') ]] ), 
@@ -36,13 +36,15 @@ body = [
     [ sg.HorizontalSeparator() ],
     [ sum_row ]
 ]
- 
+
 footer = [
     [ sg.Button( 'Zurücksetzen', size=20, key='-RESET-'), sg.Button('Buchen', expand_x=True , key='-CHECKOUT-') ]
 ]
 
 maintenance_layout = [
-    [ sg.Text("Geht grod ned!") ]
+    [ sg.VPush() ],
+    [ sg.Push(), sg.Text("Geht grod ned!", font=("Arial", 44), text_color= "purple" ), sg.Push() ],
+    [ sg.VPush() ]
 ]
 
 checkout_layout = [
@@ -54,7 +56,7 @@ checkout_layout = [
 layout = [
     [ 
         sg.Column(checkout_layout, key='-CHECKOUT_LAYOUT-', expand_x=True, expand_y=True), 
-        sg.Column(maintenance_layout, visible=False, key='-MAINTENANCE_LAYOUT-', expand_x=True, expand_y=True)
+        sg.Column(maintenance_layout, key='-MAINTENANCE_LAYOUT-', expand_x=True, expand_y=True, visible=False)
     ]
 ]
 
@@ -77,6 +79,7 @@ window = sg.Window (
 window.Resizable=True
 
 database_caller = mysql.MySql(mysql_settings_dict)
+database_caller.establishConnection()
 
 shopping_cart = classes.ShoppingCart(database_caller, general_settings_dict, window)
 scanner = scanner.Scanner(serial_settings_dict)
@@ -86,6 +89,22 @@ while True:
     event, values = window.read(timeout=1000)
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
+    
+    if event == '-REPAINT-':
+        if database_caller.is_connected():  
+            window['-MAINTENANCE_LAYOUT-'].update(visible=False)
+            window['-CHECKOUT_LAYOUT-'].update(visible=True)
+            shopping_cart.disabled = False
+        else:  
+            window['-CHECKOUT_LAYOUT-'].update(visible=False)
+            window['-MAINTENANCE_LAYOUT-'].update(visible=True)
+            shopping_cart.disabled = True
+        continue
+
+    if not database_caller.is_connected():
+        database_caller.reEstablishConnection()
+        window.write_event_value('-REPAINT-', True)
+        continue
 
     item=scanner.getBarcode()
     if item:
