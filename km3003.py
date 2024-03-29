@@ -102,6 +102,8 @@ while True:
             shopping_cart.disabled = True
         continue
 
+    # If it's the first time the connection to the db is interrupted,
+    # set a REPAINT event for the next iteration.
     if not database_caller.is_connected():
         database_caller.reEstablishConnection()
         window.write_event_value('-REPAINT-', True)
