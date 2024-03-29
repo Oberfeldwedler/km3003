@@ -5,11 +5,13 @@ from lib import mysql
 from lib import classes
 from lib import scanner
 
-sg.theme('BluePurple')
-font = ("Arial", 15)
-initialWidth=951
-initialHeight=540
-  
+config = configparser.ConfigParser()
+config.read('km3003.conf')
+general_settings_dict = dict(config['general'])
+mysql_settings_dict = dict(config['mysql'])
+serial_settings_dict = dict(config['serial'])
+
+sg.theme(general_settings_dict['theme'])
 
 product_row = [[
     sg.Column( [[ sg.Text('Getränk') ]] ), 
@@ -55,26 +57,26 @@ checkout_layout = [
 
 layout = [
     [ 
-        sg.Column(checkout_layout, key='-CHECKOUT_LAYOUT-', expand_x=True, expand_y=True), 
-        sg.Column(maintenance_layout, key='-MAINTENANCE_LAYOUT-', expand_x=True, expand_y=True, visible=False)
+        sg.Column(checkout_layout, key='-CHECKOUT_LAYOUT-', expand_x=True, expand_y=True, visible=False), 
+        sg.Column(maintenance_layout, key='-MAINTENANCE_LAYOUT-', expand_x=True, expand_y=True)
     ]
-]
-
-config = configparser.ConfigParser()
-config.read('km3003.conf')
-general_settings_dict = dict(config['general'])
-mysql_settings_dict = dict(config['mysql'])
-serial_settings_dict = dict(config['serial'])
+] 
 
 # Create the Window
 window = sg.Window (
-    'Window Title', 
+    'KM3003',
     layout, 
     no_titlebar=False,  
-    size=(initialWidth,initialHeight), 
+    size=( 
+        general_settings_dict['initial_width'], 
+        general_settings_dict['initial_height']
+    ), 
     location=(0,0), 
     keep_on_top=True,
-    font=font
+    font=( 
+        general_settings_dict['font'], 
+        general_settings_dict['font_size'] 
+    )
 )
 window.Resizable=True
 

@@ -6,8 +6,8 @@ class MySqlDataError(Exception):
 
 class MySql:
     def __init__(self, mySqlSettingsDict):
-        self.hostAddress = mySqlSettingsDict["hostaddress"]
-        self.portNumber = int(mySqlSettingsDict["portnumber"])
+        self.hostAddress = mySqlSettingsDict["host_address"]
+        self.portNumber = int(mySqlSettingsDict["port_number"])
         self.username = mySqlSettingsDict["username"]
         self.password = mySqlSettingsDict["password"]
         self.database = mySqlSettingsDict["database"]
