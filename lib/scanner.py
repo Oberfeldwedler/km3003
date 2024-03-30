@@ -40,5 +40,4 @@ class Scanner():
         return item
     
     def close(self):
-        self.exit = True
         self.ser.close()
