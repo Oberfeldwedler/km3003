@@ -17,11 +17,18 @@ class Product:
         self.price = price
 
     def generateRow(self, item_num):
-        product_row = [
-            sg.Column( [[ sg.Text(self.name) ]] ), 
-            sg.Push(),
-            sg.Column( [[ sg.Text(self.price) ]] ), 
-            sg.Column( [[ sg.Button('X', size=5, k=('-DEL-', item_num) ) ]] ),
+        product_row = [ 
+            sg.pin(
+                sg.Col( [[
+                    sg.Text(self.name), 
+                    sg.Push(),
+                    sg.Text(self.price), 
+                    sg.Button('X', size=5, k=('-DEL-', item_num)),
+                ]], 
+                k=('-ROW-', item_num),
+                expand_x=True),
+            expand_x=True
+            )
         ]
         return product_row
 
@@ -46,10 +53,12 @@ class ShoppingCart:
         self.refresh_timer_id = self.startResetTimer()
 
     def reset(self):
+        print("Reset")
         self.products_list = []
         self.user = []
-        self.window.metadata = 0
-        self.window.timer_stop(self.refresh_timer_id)
+        self.window['-PRODUCT_LIST-'].layout([[]])
+        # self.window.metadata = 0
+        self.refreshResetTimer()
 
     def checkout(self):
         for product in self.productList:

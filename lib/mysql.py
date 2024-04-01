@@ -12,7 +12,6 @@ class MySql:
         self.password = mySqlSettingsDict["password"]
         self.database = mySqlSettingsDict["database"]
         self.cnx = mysql.connector.connect()
-
         
 
     def closeConnection(self):
@@ -28,9 +27,9 @@ class MySql:
                                     database=self.database, 
                                     connect_timeout=1)
             print("Connection to database established.")
+            self.dictCursor = self.cnx.cursor(dictionary=True, buffered=True)
         except mysql.connector.Error as err:
             print(err)
-
 
 
     def reEstablishConnection(self):

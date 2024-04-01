@@ -13,13 +13,6 @@ serial_settings_dict = dict(config['serial'])
 
 sg.theme(general_settings_dict['theme'])
 
-product_row = [[
-    sg.Column( [[ sg.Text('Getränk') ]] ), 
-    sg.Push(),
-    sg.Column( [[ sg.Text('15€') ]] ), 
-    sg.Column( [[ sg.Button('X', size=5, key=('-DEL-', 0)) ]]) 
-]] 
-
 sum_row = [[ 
     sg.Column( [[sg.Text('Summe')]] ), 
     sg.Push(), 
@@ -60,7 +53,7 @@ layout = [
         sg.Column(checkout_layout, key='-CHECKOUT_LAYOUT-', expand_x=True, expand_y=True, visible=False), 
         sg.Column(maintenance_layout, key='-MAINTENANCE_LAYOUT-', expand_x=True, expand_y=True)
     ]
-] 
+]
 
 # Create the Window
 window = sg.Window (
@@ -117,8 +110,8 @@ while True:
             shopping_cart.user = result
         elif type == "product":
             shopping_cart.products_list.append(result)
+            window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow(window.metadata) ])
             window.metadata += 1
-            window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow(window.metadata) ] )
         else:
             print("Barcode not unique in database or unknown.")
 
@@ -126,10 +119,6 @@ while True:
 
         for product in shopping_cart.products_list:
             print(product.name)
-
-    # if event:
-    #     print(event[0]) 
-    #     print(event[1]) 
 
     if event[0] == '-DEL-':
         window[('-ROW-', event[1])].update(visible=False)

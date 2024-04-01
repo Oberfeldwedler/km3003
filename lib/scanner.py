@@ -32,7 +32,7 @@ class Scanner():
     def getBarcode(self):
         if self.q.empty() == False:
             try: 
-                item = self.q.get(block=True, timeout=0.05)
+                item = self.q.get(block=True)
             except:
                 item = None
         else:

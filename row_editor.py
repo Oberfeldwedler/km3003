@@ -21,9 +21,10 @@ def item_row(item_num):
     :type:           int
     :return:         List
     """
-    row =  [sg.pin(sg.Col([[sg.B("X", border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), k=('-DEL-', item_num), tooltip='Delete this item'),
-                            sg.In(size=(20,1), k=('-DESC-', item_num)),
-                            sg.T(f'Key number {item_num}', k=('-STATUS-', item_num))]], k=('-ROW-', item_num)))]
+    row =  [sg.pin(sg.Col([[sg.B("X", border_width=0, k=('-DEL-', item_num)),
+                            sg.In(size=(20,1)),
+                            sg.T(f'Key number {item_num}')]],
+                              k=('-ROW-', item_num)))]
     return row
 
 
