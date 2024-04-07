@@ -110,8 +110,7 @@ while True:
             shopping_cart.user = result
         elif type == "product":
             shopping_cart.products_list.append(result)
-            window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow(window.metadata) ])
-            window.metadata += 1
+            window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
         else:
             print("Barcode not unique in database or unknown.")
 
@@ -121,9 +120,13 @@ while True:
             print(product.name)
 
     if event[0] == '-DEL-':
-        window[('-ROW-', event[1])].update(visible=False)
+        row_number = event[1]
+        shopping_cart.removeProduct(row_number)
+        window[('-ROW-',row_number)].update(visible=False)
 
     if event == "-RESET-":
+        for product in shopping_cart.products_list:
+            window[('-ROW-', product.sequential_product_row_number)].update(visible=False)
         shopping_cart.reset()
 
     if event == "-CHECKOUT-":
