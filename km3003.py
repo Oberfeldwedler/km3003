@@ -125,9 +125,6 @@ while True:
 
         shopping_cart.refreshInactivityTimer()
 
-        # for product in shopping_cart.products_list:
-        #     print(product.name)
-
     if event[0] == '-DEL-':
         row_number = event[1]
         shopping_cart.removeProductByRowNumber(row_number)
