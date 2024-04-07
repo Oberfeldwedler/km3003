@@ -40,33 +40,38 @@ class Product:
 class ShoppingCart:
     def __init__(self, database_caller, general_settings_dict, window):
         self.database_caller = database_caller
-        self.timeout = 1000*int(general_settings_dict['screen_timeout'])
+        self.timeout = int(general_settings_dict['screen_timeout_ms'])
         self.window = window
         self.window.metadata = 0
         self.disabled = False
         self.products_list = []
         self.user = []
-        self.refresh_timer_id = self.startResetTimer()
+        self.refresh_timer_id = self.startInactivityTimer()
 
-    def startResetTimer(self):
-        refresh_timer_id = self.window.timer_start(self.timeout, key='-RESET_CHECKOUT_TIMER-', repeating=False)
+    def startInactivityTimer(self):
+        print("Start Inactivity Timer")
+        refresh_timer_id = self.window.timer_start(self.timeout, key='-INACTIVITY_TIMER-', repeating=False)
         return refresh_timer_id
 
-    def refreshResetTimer(self):
+    def stopInactivityTimer(self):
+        print("Stop Inactivity Timer")
         self.window.timer_stop(self.refresh_timer_id)
-        self.refresh_timer_id = self.startResetTimer()
+
+    def refreshInactivityTimer(self):
+        # print("Refresh Inactivity Timer")
+        self.stopInactivityTimer()
+        self.refresh_timer_id = self.startInactivityTimer()
 
     def reset(self):
-        print("Reset")
         self.removeAllProducts()
-        self.refreshResetTimer()
+        self.stopInactivityTimer()
 
     def checkout(self):
         for product in self.productList:
             self.database_caller.insertPurchaseIntoDatabase(self, product.id, self.user.id, self.price_then)
         self.reset()
 
-    def removeProductByRow(self, row_number):
+    def removeProductByRowNumber(self, row_number):
         for product in self.products_list:
             if product.sequential_product_row_number == row_number:
                 self.products_list.remove(product)

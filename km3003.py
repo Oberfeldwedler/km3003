@@ -72,6 +72,7 @@ window = sg.Window (
     )
 )
 window.Resizable=True
+# window.print_event_values=True
 
 database_caller = mysql.MySql(mysql_settings_dict)
 
@@ -83,6 +84,14 @@ while True:
     event, values = window.read(timeout=1000)
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
+
+    if event != "__TIMEOUT__" and event != "-INACTIVITY_TIMER-" and event != "-RESET-":
+        shopping_cart.refreshInactivityTimer()
+
+    if event == "-INACTIVITY_TIMER-":
+        window.write_event_value('-RESET-', True)
+# TODO: maybe turn on a screensaver here
+        continue
     
     if event == '-REPAINT-':
         if database_caller.is_connected():  
@@ -114,14 +123,14 @@ while True:
         else:
             print("Barcode not unique in database or unknown.")
 
-        shopping_cart.refreshResetTimer()
+        shopping_cart.refreshInactivityTimer()
 
-        for product in shopping_cart.products_list:
-            print(product.name)
+        # for product in shopping_cart.products_list:
+        #     print(product.name)
 
     if event[0] == '-DEL-':
         row_number = event[1]
-        shopping_cart.removeProduct(row_number)
+        shopping_cart.removeProductByRowNumber(row_number)
         window[('-ROW-',row_number)].update(visible=False)
 
     if event == "-RESET-":
@@ -132,11 +141,7 @@ while True:
     if event == "-CHECKOUT-":
         shopping_cart.checkout()
 
-    if event == "-RESET_CHECKOUT_TIMER-":
-        shopping_cart.reset()
 
-    if event:
-        shopping_cart.refreshResetTimer()
 
 
 scanner.close()
