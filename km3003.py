@@ -23,7 +23,7 @@ product_list = [
     [ sg.Col( [], expand_x=True, key='-PRODUCT_LIST-') ]
 ]
 
-member_row = [[ sg.Text('Bitte Ausweis scannen') ]]
+member_row = [[ sg.Text('Bitte Ausweis scannen', key='-MEMBER-') ]]
 
 body = [
     [ product_list ],
@@ -56,6 +56,7 @@ layout = [
 ]
 
 # Create the Window
+# TODO: window global?
 window = sg.Window (
     'KM3003',
     layout, 
@@ -117,6 +118,7 @@ while True:
         result, type = database_caller.runBarcodeAgainstDatabase(item)
         if type == "user":
             shopping_cart.user = result
+            window['-MEMBER-'].update(result.name)
         elif type == "product":
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
@@ -133,12 +135,11 @@ while True:
     if event == "-RESET-":
         for product in shopping_cart.products_list:
             window[('-ROW-', product.sequential_product_row_number)].update(visible=False)
+        window['-MEMBER-'].update('Bitte Ausweis scannen')
         shopping_cart.reset()
 
     if event == "-CHECKOUT-":
         shopping_cart.checkout()
-
-
 
 
 scanner.close()

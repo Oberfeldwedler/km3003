@@ -96,7 +96,6 @@ class MySql:
         insertPurchase = (
             "INSERT INTO purchases (product_id, user_id, price_then) VALUES (%s, %s, %s)"
         )
-        print(insertPurchase)
         try:
             self.dictCursor.execute(insertPurchase, ( product_id, user_id, price_then ) )
             self.cnx.commit()
