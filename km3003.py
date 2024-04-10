@@ -16,7 +16,7 @@ sg.theme(general_settings_dict['theme'])
 sum_row = [[ 
     sg.Column( [[sg.Text('Summe')]] ), 
     sg.Push(), 
-    sg.Column( [[sg.Text('80€')]] )
+    sg.Column( [[sg.Text('0€', key='-SUM-')]] )
 ]]
 
 product_list = [
@@ -122,6 +122,10 @@ while True:
         elif type == "product":
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
+            sum = 0
+            for product in shopping_cart.products_list:
+                sum += product.price
+            window['-SUM-'].update(f"{sum}€")
         else:
             print("Barcode not unique in database or unknown.")
 
@@ -136,6 +140,7 @@ while True:
         for product in shopping_cart.products_list:
             window[('-ROW-', product.sequential_product_row_number)].update(visible=False)
         window['-MEMBER-'].update('Bitte Ausweis scannen')
+        window['-SUM-'].update('0€')
         shopping_cart.reset()
 
     if event == "-CHECKOUT-":
