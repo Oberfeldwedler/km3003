@@ -94,22 +94,25 @@ while True:
 # TODO: maybe turn on a screensaver here
         continue
     
-    if event == '-REPAINT-':
+    if  event == '-DATABASE_CONNECTION_INTERRUPTED-' or
+        event == ''
+    :
         if database_caller.is_connected():  
             window['-MAINTENANCE_LAYOUT-'].update(visible=False)
             window['-CHECKOUT_LAYOUT-'].update(visible=True)
             shopping_cart.disabled = False
+            continue
         else:  
             window['-CHECKOUT_LAYOUT-'].update(visible=False)
             window['-MAINTENANCE_LAYOUT-'].update(visible=True)
             shopping_cart.disabled = True
-        continue
+            continue
 
     # If it's the first time the connection to the db is interrupted,
     # set a REPAINT event for the next iteration.
     if not database_caller.is_connected():
         database_caller.reEstablishConnection()
-        window.write_event_value('-REPAINT-', True)
+        window.write_event_value('-DATABASE_CONNECTION_INTERRUPTED-', True)
         continue
 
     item=scanner.getBarcode()
@@ -150,3 +153,4 @@ while True:
 scanner.close()
 database_caller.closeConnection()
 window.close()
+ 

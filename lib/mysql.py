@@ -99,12 +99,14 @@ class MySql:
         try:
             self.dictCursor.execute(insertPurchase, ( product_id, user_id, price_then ) )
             self.cnx.commit()
+            return True
         except mysql.connector.Error as err:
             print("Something went wrong: {}".format(err))
+            return False
 
-        #  +Calc and update current_balance in user table
+        #  TODO: +Calc and update current_balance in user table
 
-        # do everything in 1 transaction
+        #  TODO: do everything in 1 transaction
             
 
     def checkout(self, user_id, products_list):
