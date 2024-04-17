@@ -65,17 +65,16 @@ class ShoppingCart:
         self.stopInactivityTimer()
 
     def checkout(self):
-        if self.user == None or not self.products_list:
-            return
-
-        for product in self.products_list:
-            self.database_caller.insertPurchaseIntoDatabase(product.id, self.user.id, product.price)
-        self.window.write_event_value('-RESET-', True)
+        checkout_ready = not (self.user == None) and self.products_list
+        if checkout_ready:
+            if self.database_caller.insertPurchasesListIntoDatabase(self.products_list, self.user.id):
+                self.window.write_event_value('-CHECKOUT_SUCESSFUL-', True)
+                self.window.write_event_value('-MESSAGE-', "Checkout sucessfull")
+        else:
+            self.window.write_event_value('-CHECKOUT_SUCESSFUL-', False)    
+            self.window.write_event_value('-MESSAGE-', "Checkout failed")
 
     def removeProductByRowNumber(self, row_number):
         for product in self.products_list:
             if product.sequential_product_row_number == row_number:
                 self.products_list.remove(product)
-
-    # def removeAllProducts(self):
-    #     self.products_list = []

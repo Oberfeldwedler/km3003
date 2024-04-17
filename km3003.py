@@ -86,33 +86,36 @@ while True:
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
 
-    if event != "__TIMEOUT__" and event != "-INACTIVITY_TIMER-" and event != "-RESET-":
-        shopping_cart.refreshInactivityTimer()
-
-    if event == "-INACTIVITY_TIMER-":
-        window.write_event_value('-RESET-', True)
-# TODO: maybe turn on a screensaver here
-        continue
-    
-    if  event == '-DATABASE_CONNECTION_INTERRUPTED-' or
-        event == ''
-    :
+    if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
         if database_caller.is_connected():  
             window['-MAINTENANCE_LAYOUT-'].update(visible=False)
             window['-CHECKOUT_LAYOUT-'].update(visible=True)
             shopping_cart.disabled = False
-            continue
         else:  
             window['-CHECKOUT_LAYOUT-'].update(visible=False)
             window['-MAINTENANCE_LAYOUT-'].update(visible=True)
             shopping_cart.disabled = True
-            continue
+        continue
 
     # If it's the first time the connection to the db is interrupted,
-    # set a REPAINT event for the next iteration.
+    # set an event for the next iteration.
     if not database_caller.is_connected():
         database_caller.reEstablishConnection()
         window.write_event_value('-DATABASE_CONNECTION_INTERRUPTED-', True)
+        continue
+
+    if( not event == "-RESET-" and
+        not event == "__TIMEOUT__" and
+        not event == "-INACTIVITY_TIMER-" ):
+
+        shopping_cart.refreshInactivityTimer()
+        # TODO: continue here?
+        # continue
+
+    if( event == "-INACTIVITY_TIMER-" or 
+        values["-CHECKOUT_SUCESSFUL-"] == True ):
+
+        window.write_event_value('-RESET-', True)
         continue
 
     item=scanner.getBarcode()
