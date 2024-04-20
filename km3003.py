@@ -84,7 +84,7 @@ message_timer_id = 0
 
 database_caller = mysql.MySql(mysql_settings_dict)
 
-shopping_cart = classes.ShoppingCart(database_caller, general_settings_dict, window)
+shopping_cart = classes.ShoppingCart(database_caller)
 scanner = scanner.Scanner(serial_settings_dict)
 
 def refreshTimer(timer_id):
@@ -99,7 +99,7 @@ def reset():
     shopping_cart.reset()
 
 def layout_switcher(event):
-    if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
+    if event == '-DATABASE_CONNECTION_INTERRUPTED-':
         if database_caller.is_connected():  
             window['-MESSAGE_LAYOUT-'].update(visible=False)
             window['-CHECKOUT_LAYOUT-'].update(visible=True)
@@ -107,7 +107,10 @@ def layout_switcher(event):
             window['-CHECKOUT_LAYOUT-'].update(visible=False)
             window['-MESSAGE_LAYOUT-'].update(visible=True)
         return True
-    return False
+    # elif event == '-CHECKOUT_SUCCESSFULL-':
+        
+    else:
+        return False
  
 while True:
     event, values = window.read(timeout=1000)
@@ -133,7 +136,10 @@ while True:
         continue
 
     if event == "-CHECKOUT-":
-        shopping_cart.checkout()
+        if shopping_cart.checkout():
+            window.write_event_value('-CHECKOUT_SUCCESSFULL-', True)
+        else:
+            window.write_event_value('-CHECKOUT_FAILED-', True)
         reset()
         continue
 

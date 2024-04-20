@@ -38,7 +38,7 @@ class Product:
 
 
 class ShoppingCart:
-    def __init__(self, database_caller, general_settings_dict, window):
+    def __init__(self, database_caller):
         self.database_caller = database_caller
         self.products_list = []
         self.user = None
@@ -50,7 +50,16 @@ class ShoppingCart:
     def checkout(self):
         checkout_ready = not (self.user == None) and self.products_list
         if checkout_ready:
-            return self.database_caller.insertPurchasesListIntoDatabase(self.products_list, self.user.id)
+            new_balance = self.user.current_balance
+            for product in self.products_list:
+                new_balance -= product.price
+            transaction_complete = self.database_caller.insertPurchasesList(self.products_list, self.user.id)
+            transaction_complete &= self.database_caller.updateUserBalance(self.user.id, new_balance)
+            if transaction_complete:
+                self.database_caller.commitCurrentTransaction()
+                return True
+            else:
+                return False
 
     def removeProductByRowNumber(self, row_number):
         for product in self.products_list:

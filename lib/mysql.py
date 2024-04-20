@@ -91,24 +91,33 @@ class MySql:
         except MySqlDataError:
             print("Barcode is not unique in database.")
             return None, None
-        
-    def insertPurchasesListIntoDatabase(self, products_list, user_id):
-        success = True
-        for product in products_list:
-            success &= self.insertPurchaseIntoDatabase(product.id, user_id, product.price)
-            
-        if not success:
-            return False
 
+    def commitCurrentTransaction(self):
         try:
             self.cnx.commit()
             return True
         except mysql.connector.Error as err:
             print("Failed to commit transaction: {}".format(err))
             return False
-        
 
-    def insertPurchaseIntoDatabase(self, product_id, user_id, price_then):
+    def updateUserBalance(self, user_id, new_balance):
+        updateBalance = ( 
+            "UPDATE users SET current_balance=%s WHERE (id=%s)"
+        )
+        try:
+            self.dictCursor.execute(updateBalance, ( new_balance, user_id ) )
+            return True
+        except mysql.connector.Error as err:
+            print("Failed to create database transaction: {}".format(err))
+            return False
+
+    def insertPurchasesList(self, products_list, user_id):
+        success = True
+        for product in products_list:
+            success &= self.insertPurchase(product.id, user_id, product.price)
+        return success   
+
+    def insertPurchase(self, product_id, user_id, price_then):
         insertPurchase = (
             "INSERT INTO purchases (product_id, user_id, price_then) VALUES (%s, %s, %s)"
         )
