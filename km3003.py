@@ -132,6 +132,22 @@ while True:
         window.write_event_value('-DATABASE_CONNECTION_INTERRUPTED-', True)
         continue
 
+    if event == "-CHECKOUT-":
+        shopping_cart.checkout()
+        reset()
+        continue
+
+    if( event == "-INACTIVITY_TIMER-" or
+        event == "RESET" ):
+            reset()
+            continue
+    
+    if event[0] == '-DEL-':
+        row_number = event[1]
+        shopping_cart.removeProductByRowNumber(row_number)
+        window[('-ROW-',row_number)].update(visible=False)
+        continue
+
     item=scanner.getBarcode()
     if item:
         item = item.strip()
@@ -151,20 +167,6 @@ while True:
 
         inactivity_timer_id = refreshTimer(inactivity_timer_id)
 
-    if event[0] == '-DEL-':
-        row_number = event[1]
-        shopping_cart.removeProductByRowNumber(row_number)
-        window[('-ROW-',row_number)].update(visible=False)
-
-    if( event == "-INACTIVITY_TIMER-" or
-        event == "RESET" ):
-            reset()
-            continue
-
-    if event == "-CHECKOUT-":
-        shopping_cart.checkout()
-        reset()
-    
 
 scanner.close()
 database_caller.closeConnection()

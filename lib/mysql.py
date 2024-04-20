@@ -99,15 +99,14 @@ class MySql:
             
         if not success:
             return False
-        
+
         try:
             self.cnx.commit()
             return True
         except mysql.connector.Error as err:
             print("Failed to commit transaction: {}".format(err))
             return False
-
-
+        
 
     def insertPurchaseIntoDatabase(self, product_id, user_id, price_then):
         insertPurchase = (
@@ -120,10 +119,6 @@ class MySql:
             print("Failed to create database transaction: {}".format(err))
             return False
 
-        #  TODO: +Calc and update current_balance in user table
-
-        #  TODO: do everything in 1 transaction
-            
 
     def checkout(self, user_id, products_list):
         for product in products_list:
