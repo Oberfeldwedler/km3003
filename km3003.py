@@ -103,7 +103,7 @@ while True:
     if event != "__TIMEOUT__" and event != "-INACTIVITY_TIMER-" and event != "-RESET-":
         shopping_cart.refreshInactivityTimer()
 
-    if event == '-REPAINT-':
+    if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
         if database_caller.is_connected():  
             window['-MAINTENANCE_LAYOUT-'].update(visible=False)
             window['-CHECKOUT_LAYOUT-'].update(visible=True)
@@ -115,10 +115,24 @@ while True:
         continue
 
     # If it's the first time the connection to the db is interrupted,
-    # set a REPAINT event for the next iteration.
+    # set an event for the next iteration.
     if not database_caller.is_connected():
         database_caller.reEstablishConnection()
-        window.write_event_value('-REPAINT-', True)
+        window.write_event_value('-DATABASE_CONNECTION_INTERRUPTED-', True)
+        continue
+
+    if( not event == "-RESET-" and
+        not event == "__TIMEOUT__" and
+        not event == "-INACTIVITY_TIMER-" ):
+
+        shopping_cart.refreshInactivityTimer()
+        # TODO: continue here?
+        # continue
+
+    if( event == "-INACTIVITY_TIMER-" or 
+        values["-CHECKOUT_SUCESSFUL-"] == True ):
+
+        window.write_event_value('-RESET-', True)
         continue
 
     item=scanner.getBarcode()
@@ -158,3 +172,4 @@ while True:
 scanner.close()
 database_caller.closeConnection()
 window.close()
+ 
