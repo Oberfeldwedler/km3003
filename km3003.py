@@ -55,6 +55,9 @@ layout = [
     ]
 ]
 
+
+
+
 # Create the Window
 # TODO: window global?
 window = sg.Window (
@@ -80,20 +83,26 @@ database_caller = mysql.MySql(mysql_settings_dict)
 shopping_cart = classes.ShoppingCart(database_caller, general_settings_dict, window)
 scanner = scanner.Scanner(serial_settings_dict)
 
-while True:
+def reset():
+    for product in shopping_cart.products_list:
+        window[('-ROW-', product.sequential_product_row_number)].update(visible=False)
+    window['-MEMBER-'].update('Bitte Ausweis scannen')
+    window['-SUM-'].update('0€')
+    shopping_cart.reset()
 
+while True:
     event, values = window.read(timeout=1000)
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
 
+    if not event == "__TIMEOUT__":
+        print("__LOOP__")
+        # print(event)
+        # print(values)
+
     if event != "__TIMEOUT__" and event != "-INACTIVITY_TIMER-" and event != "-RESET-":
         shopping_cart.refreshInactivityTimer()
 
-    if event == "-INACTIVITY_TIMER-":
-        window.write_event_value('-RESET-', True)
-# TODO: maybe turn on a screensaver here
-        continue
-    
     if event == '-REPAINT-':
         if database_caller.is_connected():  
             window['-MAINTENANCE_LAYOUT-'].update(visible=False)
@@ -136,16 +145,15 @@ while True:
         shopping_cart.removeProductByRowNumber(row_number)
         window[('-ROW-',row_number)].update(visible=False)
 
-    if event == "-RESET-":
-        for product in shopping_cart.products_list:
-            window[('-ROW-', product.sequential_product_row_number)].update(visible=False)
-        window['-MEMBER-'].update('Bitte Ausweis scannen')
-        window['-SUM-'].update('0€')
-        shopping_cart.reset()
+    if( event == "-INACTIVITY_TIMER-" or
+        event == "RESET" ):
+            reset()
+            continue
 
     if event == "-CHECKOUT-":
         shopping_cart.checkout()
-
+        reset()
+    
 
 scanner.close()
 database_caller.closeConnection()
