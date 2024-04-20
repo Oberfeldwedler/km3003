@@ -93,6 +93,7 @@ class MySql:
             return None, None
         
     def insertPurchasesListIntoDatabase(self, products_list, user_id):
+        success = True
         for product in products_list:
             success &= self.insertPurchaseIntoDatabase(product.id, user_id, product.price)
             

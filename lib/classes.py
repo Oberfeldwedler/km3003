@@ -40,39 +40,17 @@ class Product:
 class ShoppingCart:
     def __init__(self, database_caller, general_settings_dict, window):
         self.database_caller = database_caller
-        self.timeout = int(general_settings_dict['screen_timeout_ms'])
-        self.window = window
-        # self.window.metadata = 0
-        self.disabled = False
         self.products_list = []
         self.user = None
-        self.refresh_timer_id = self.startInactivityTimer()
-
-    def startInactivityTimer(self):
-        refresh_timer_id = self.window.timer_start(self.timeout, key='-INACTIVITY_TIMER-', repeating=False)
-        return refresh_timer_id
-
-    def stopInactivityTimer(self):
-        self.window.timer_stop(self.refresh_timer_id)
-
-    def refreshInactivityTimer(self):
-        self.stopInactivityTimer()
-        self.refresh_timer_id = self.startInactivityTimer()
 
     def reset(self):
         self.user = None
         self.products_list = []
-        self.stopInactivityTimer()
 
     def checkout(self):
         checkout_ready = not (self.user == None) and self.products_list
         if checkout_ready:
-            if self.database_caller.insertPurchasesListIntoDatabase(self.products_list, self.user.id):
-                self.window.write_event_value('-CHECKOUT_SUCESSFUL-', True)
-                self.window.write_event_value('-MESSAGE-', "Checkout sucessfull")
-        else:
-            self.window.write_event_value('-CHECKOUT_SUCESSFUL-', False)    
-            self.window.write_event_value('-MESSAGE-', "Checkout failed")
+            return self.database_caller.insertPurchasesListIntoDatabase(self.products_list, self.user.id)
 
     def removeProductByRowNumber(self, row_number):
         for product in self.products_list:

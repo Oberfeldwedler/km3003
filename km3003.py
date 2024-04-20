@@ -10,6 +10,7 @@ config.read('km3003.conf')
 general_settings_dict = dict(config['general'])
 mysql_settings_dict = dict(config['mysql'])
 serial_settings_dict = dict(config['serial'])
+timeout = int(general_settings_dict['screen_timeout_ms'])
 
 sg.theme(general_settings_dict['theme'])
 
@@ -36,7 +37,7 @@ footer = [
     [ sg.Button( 'Zurücksetzen', size=20, key='-RESET-'), sg.Button('Buchen', expand_x=True , key='-CHECKOUT-') ]
 ]
 
-maintenance_layout = [
+message_layout = [
     [ sg.VPush() ],
     [ sg.Push(), sg.Text("Geht grod ned!", font=("Arial", 44), text_color= "purple" ), sg.Push() ],
     [ sg.VPush() ]
@@ -51,7 +52,7 @@ checkout_layout = [
 layout = [
     [ 
         sg.Column(checkout_layout, key='-CHECKOUT_LAYOUT-', expand_x=True, expand_y=True, visible=False), 
-        sg.Column(maintenance_layout, key='-MAINTENANCE_LAYOUT-', expand_x=True, expand_y=True)
+        sg.Column(message_layout, key='-MESSAGE_LAYOUT-', expand_x=True, expand_y=True)
     ]
 ]
 
@@ -78,10 +79,17 @@ window = sg.Window (
 window.Resizable=True
 # window.print_event_values=True
 
+inactivity_timer_id = 0
+message_timer_id = 0
+
 database_caller = mysql.MySql(mysql_settings_dict)
 
 shopping_cart = classes.ShoppingCart(database_caller, general_settings_dict, window)
 scanner = scanner.Scanner(serial_settings_dict)
+
+def refreshTimer(timer_id):
+    window.timer_stop(timer_id)
+    return window.timer_start(timeout, key='-INACTIVITY_TIMER-', repeating=False)
 
 def reset():
     for product in shopping_cart.products_list:
@@ -90,6 +98,17 @@ def reset():
     window['-SUM-'].update('0€')
     shopping_cart.reset()
 
+def layout_switcher(event):
+    if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
+        if database_caller.is_connected():  
+            window['-MESSAGE_LAYOUT-'].update(visible=False)
+            window['-CHECKOUT_LAYOUT-'].update(visible=True)
+        else:  
+            window['-CHECKOUT_LAYOUT-'].update(visible=False)
+            window['-MESSAGE_LAYOUT-'].update(visible=True)
+        return True
+    return False
+ 
 while True:
     event, values = window.read(timeout=1000)
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
@@ -97,42 +116,20 @@ while True:
 
     if not event == "__TIMEOUT__":
         print("__LOOP__")
-        # print(event)
+        print(event)
         # print(values)
 
-    if event != "__TIMEOUT__" and event != "-INACTIVITY_TIMER-" and event != "-RESET-":
-        shopping_cart.refreshInactivityTimer()
+    if( event != "-RESET-" and
+        event != "-INACTIVITY_TIMER-" and 
+        event != "__TIMEOUT__" ):
+            inactivity_timer_id = refreshTimer(inactivity_timer_id)
 
-    if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
-        if database_caller.is_connected():  
-            window['-MAINTENANCE_LAYOUT-'].update(visible=False)
-            window['-CHECKOUT_LAYOUT-'].update(visible=True)
-            shopping_cart.disabled = False
-        else:  
-            window['-CHECKOUT_LAYOUT-'].update(visible=False)
-            window['-MAINTENANCE_LAYOUT-'].update(visible=True)
-            shopping_cart.disabled = True
+    if layout_switcher(event):
         continue
 
-    # If it's the first time the connection to the db is interrupted,
-    # set an event for the next iteration.
     if not database_caller.is_connected():
         database_caller.reEstablishConnection()
         window.write_event_value('-DATABASE_CONNECTION_INTERRUPTED-', True)
-        continue
-
-    if( not event == "-RESET-" and
-        not event == "__TIMEOUT__" and
-        not event == "-INACTIVITY_TIMER-" ):
-
-        shopping_cart.refreshInactivityTimer()
-        # TODO: continue here?
-        # continue
-
-    if( event == "-INACTIVITY_TIMER-" or 
-        values["-CHECKOUT_SUCESSFUL-"] == True ):
-
-        window.write_event_value('-RESET-', True)
         continue
 
     item=scanner.getBarcode()
@@ -152,7 +149,7 @@ while True:
         else:
             print("Barcode not unique in database or unknown.")
 
-        shopping_cart.refreshInactivityTimer()
+        inactivity_timer_id = refreshTimer(inactivity_timer_id)
 
     if event[0] == '-DEL-':
         row_number = event[1]
@@ -172,4 +169,3 @@ while True:
 scanner.close()
 database_caller.closeConnection()
 window.close()
- 
