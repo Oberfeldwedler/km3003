@@ -113,6 +113,10 @@ def reset():
     shopping_cart.reset()
 
 def layout_switcher(event, values):
+
+    # if event != "__TIMEOUT__":
+    #     print(event)
+
     switched = False
     if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
             window['-MESSAGE_LAYOUT-'].update(visible=False)
