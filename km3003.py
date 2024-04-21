@@ -200,7 +200,7 @@ while True:
         result, type = database_caller.runBarcodeAgainstDatabase(item)
         if type == "user":
             shopping_cart.user = result
-            window['-MEMBER-'].update(result.name)
+            window['-MEMBER-'].update(f"{result.name}       Guthaben: {result.current_balance}€")
         elif type == "product":
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
