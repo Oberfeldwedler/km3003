@@ -147,7 +147,11 @@ def layout_switcher(event, values):
             window['-CHECKOUT_LAYOUT-'].update(visible=True)
             switched = True
     return switched
- 
+
+# TODO: 
+# - test failed mysql transactions
+# - display unknown barcodes
+
 while True:
     event, values = window.read(timeout=1000)
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
@@ -160,7 +164,7 @@ while True:
 
     if layout_switcher(event, values):
         continue
-    
+
     if last_database_connection_state == "Down" and database_caller.is_connected():
         window.write_event_value('-DATABASE_CONNECTION_RESTORED-', True)
         continue
@@ -183,7 +187,7 @@ while True:
         event == "-RESET-" ):
             reset()
             continue
-    
+
     if event[0] == '-DEL-':
         row_number = event[1]
         shopping_cart.removeProductByRowNumber(row_number)
