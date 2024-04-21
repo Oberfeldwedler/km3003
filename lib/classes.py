@@ -56,8 +56,7 @@ class ShoppingCart:
             transaction_complete = self.database_caller.insertPurchasesList(self.products_list, self.user.id)
             transaction_complete &= self.database_caller.updateUserBalance(self.user.id, new_balance)
             if transaction_complete:
-                self.database_caller.commitCurrentTransaction()
-                return True
+                return self.database_caller.commitCurrentTransaction()
             else:
                 return False
 
@@ -65,3 +64,7 @@ class ShoppingCart:
         for product in self.products_list:
             if product.sequential_product_row_number == row_number:
                 self.products_list.remove(product)
+
+    def refreshUser(self):
+        if self.user:
+            self.user = self.database_caller.getUserFromDatabase(self.user.barcode)

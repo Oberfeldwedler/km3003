@@ -10,7 +10,8 @@ config.read('km3003.conf')
 general_settings_dict = dict(config['general'])
 mysql_settings_dict = dict(config['mysql'])
 serial_settings_dict = dict(config['serial'])
-timeout = int(general_settings_dict['screen_timeout_ms'])
+inactivity_timeout = int(general_settings_dict['screen_timeout_ms'])
+message_timeout = int(general_settings_dict['message_timeout_ms'])
 
 sg.theme(general_settings_dict['theme'])
 
@@ -39,7 +40,7 @@ footer = [
 
 message_layout = [
     [ sg.VPush() ],
-    [ sg.Push(), sg.Text("Geht grod ned!", font=("Arial", 44), text_color= "purple" ), sg.Push() ],
+    [ sg.Push(), sg.Text("Geht grod ned!", font=("Arial", 44), text_color= "purple", key="-MESSAGE-"), sg.Push() ],
     [ sg.VPush() ]
 ]
 
@@ -83,13 +84,26 @@ inactivity_timer_id = 0
 message_timer_id = 0
 
 database_caller = mysql.MySql(mysql_settings_dict)
+last_database_connection_state = "Up"
 
 shopping_cart = classes.ShoppingCart(database_caller)
 scanner = scanner.Scanner(serial_settings_dict)
 
-def refreshTimer(timer_id):
+def refreshTimer(timeout, timer_id, custom_key):
     window.timer_stop(timer_id)
-    return window.timer_start(timeout, key='-INACTIVITY_TIMER-', repeating=False)
+    return window.timer_start(timeout, key=custom_key, repeating=False)
+
+def refreshInactivityTimer():
+    global inactivity_timer_id
+    inactivity_timer_id = refreshTimer(inactivity_timeout, inactivity_timer_id, "-INACTIVITY_TIMER-")
+
+def refreshMessageTimer():
+    global message_timer_id
+    message_timer_id = refreshTimer(message_timeout, message_timer_id, "-MESSAGE_TIMER-")
+
+def stopMessageTimer():
+    window.timer_stop(message_timer_id)
+     
 
 def reset():
     for product in shopping_cart.products_list:
@@ -98,53 +112,71 @@ def reset():
     window['-SUM-'].update('0€')
     shopping_cart.reset()
 
-def layout_switcher(event):
-    if event == '-DATABASE_CONNECTION_INTERRUPTED-':
-        if database_caller.is_connected():  
+def layout_switcher(event, values):
+    switched = False
+    if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
             window['-MESSAGE_LAYOUT-'].update(visible=False)
             window['-CHECKOUT_LAYOUT-'].update(visible=True)
-        else:  
-            window['-CHECKOUT_LAYOUT-'].update(visible=False)
+            window['-MESSAGE-'].update('Datenbank nicht erreichbar!')
+            stopMessageTimer()
+            switched = True
+    elif event == '-CHECKOUT_SUCCESSFULL-':
             window['-MESSAGE_LAYOUT-'].update(visible=True)
-        return True
-    # elif event == '-CHECKOUT_SUCCESSFULL-':
-        
-    else:
-        return False
+            window['-CHECKOUT_LAYOUT-'].update(visible=False)
+            window['-MESSAGE-'].update(f"Erfolg! Guthaben: {values['-CHECKOUT_SUCCESSFULL-']}")
+            refreshMessageTimer()
+            switched = True
+    elif event == '-CHECKOUT_FAILED-':
+            window['-MESSAGE_LAYOUT-'].update(visible=True)
+            window['-CHECKOUT_LAYOUT-'].update(visible=False)
+            window['-MESSAGE-'].update(f"Das hat nicht geklappt.")
+            refreshMessageTimer()
+            switched = True
+    # return to default by db reconnect
+    elif event == '-DATABASE_CONNECTION_RESTORED-':
+            window['-MESSAGE_LAYOUT-'].update(visible=False)
+            window['-CHECKOUT_LAYOUT-'].update(visible=True)
+            switched = True
+    # return to default by timer
+    elif event == '-MESSAGE_TIMER-':
+            window['-MESSAGE_LAYOUT-'].update(visible=False)
+            window['-CHECKOUT_LAYOUT-'].update(visible=True)
+            switched = True
+    return switched
  
 while True:
     event, values = window.read(timeout=1000)
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
 
-    if not event == "__TIMEOUT__":
-        print("__LOOP__")
-        print(event)
-        # print(values)
-
     if( event != "-RESET-" and
         event != "-INACTIVITY_TIMER-" and 
         event != "__TIMEOUT__" ):
-            inactivity_timer_id = refreshTimer(inactivity_timer_id)
+            refreshInactivityTimer()
 
-    if layout_switcher(event):
+    if layout_switcher(event, values):
+        continue
+    
+    if last_database_connection_state == "Down" and database_caller.is_connected():
+        window.write_event_value('-DATABASE_CONNECTION_RESTORED-', True)
         continue
 
-    if not database_caller.is_connected():
+    if last_database_connection_state == "Up" and not database_caller.is_connected():
         database_caller.reEstablishConnection()
         window.write_event_value('-DATABASE_CONNECTION_INTERRUPTED-', True)
         continue
 
     if event == "-CHECKOUT-":
         if shopping_cart.checkout():
-            window.write_event_value('-CHECKOUT_SUCCESSFULL-', True)
+            shopping_cart.refreshUser()
+            window.write_event_value('-CHECKOUT_SUCCESSFULL-', shopping_cart.user.current_balance)
         else:
-            window.write_event_value('-CHECKOUT_FAILED-', True)
+            window.write_event_value('-CHECKOUT_FAILED-', shopping_cart.user.current_balance)
         reset()
         continue
 
     if( event == "-INACTIVITY_TIMER-" or
-        event == "RESET" ):
+        event == "-RESET-" ):
             reset()
             continue
     
@@ -171,7 +203,7 @@ while True:
         else:
             print("Barcode not unique in database or unknown.")
 
-        inactivity_timer_id = refreshTimer(inactivity_timer_id)
+        refreshInactivityTimer()
 
 
 scanner.close()

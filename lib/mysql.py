@@ -12,7 +12,6 @@ class MySql:
         self.password = mySqlSettingsDict["password"]
         self.database = mySqlSettingsDict["database"]
         self.cnx = mysql.connector.connect()
-        
 
     def closeConnection(self):
         try:
@@ -42,7 +41,7 @@ class MySql:
 
     def createDictCursor(self):
         self.dictCursor = self.cnx.cursor(buffered = True, dictionary = True)
-        
+ 
        
     def getUserFromDatabase(self, barcode):
         getUsers = ("SELECT * FROM users WHERE barcode=%s")
