@@ -131,13 +131,3 @@ class MySql:
     def checkout(self, user_id, products_list):
         for product in products_list:
             self.insertPurchaseIntoDatabase(user_id, product)
-
-
-# test_user = database_caller.getUserFromDatabase("301260000015887")
-# print(test_user.name)
-# test_product =database_caller.getProductFromDatabase("20290443")
-# print(test_product.name)
-# result, type = database_caller.runBarcodeAgainstDatabase("301260000015887")
-# print(result)
-
-# database_caller.insertPurchaseIntoDatabase(2, 3, 0.4)
