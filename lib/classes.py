@@ -9,7 +9,6 @@ class User:
 
 
 class Product:
-
     sequential_product_row_counter = 0
 
     def __init__(self, id, barcode, name, price):

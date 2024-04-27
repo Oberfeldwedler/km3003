@@ -145,6 +145,9 @@ def layout_switcher(event, values):
     elif event == '-MESSAGE_TIMER-':
         show_checkout_layout()
         switched = True
+    elif event == '-BARCODE_UNKNOWN-':
+        show_message_layout(f"Unbekannter Barcode: {values['-BARCODE_UNKNOWN-']}")
+        refreshMessageTimer()
 
     return switched
 
@@ -152,7 +155,6 @@ def layout_switcher(event, values):
 
 # TODO: 
 # - test failed mysql transactions
-# - display unknown barcodes
 
 while True:
     event, values = window.read(timeout=1000)
@@ -216,6 +218,7 @@ while True:
             window['-SUM-'].update(f"{sum}€")
         else:
             print("Barcode not unique in database or unknown.")
+            window.write_event_value('-BARCODE_UNKNOWN-', item.decode())
 
         refreshInactivityTimer()
 
