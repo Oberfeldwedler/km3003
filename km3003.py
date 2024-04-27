@@ -53,7 +53,7 @@ checkout_layout = [
 layout = [
     [ 
         sg.Column(checkout_layout, key='-CHECKOUT_LAYOUT-', expand_x=True, expand_y=True, visible=False), 
-        sg.Column(message_layout, key='-MESSAGE_LAYOUT-', expand_x=True, expand_y=True)
+        sg.Column(message_layout, key='-MESSAGE_LAYOUT-', expand_x=True, expand_y=True, visible=True)
     ]
 ]
 
@@ -114,13 +114,13 @@ def reset():
 
 def layout_switcher(event, values):
 
-    # if event != "__TIMEOUT__":
-    #     print(event)
+    if event != "__TIMEOUT__":
+        print(event)
 
     switched = False
     if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
-            window['-MESSAGE_LAYOUT-'].update(visible=False)
-            window['-CHECKOUT_LAYOUT-'].update(visible=True)
+            window['-MESSAGE_LAYOUT-'].update(visible=True)
+            window['-CHECKOUT_LAYOUT-'].update(visible=False)
             window['-MESSAGE-'].update('Datenbank nicht erreichbar!')
             stopMessageTimer()
             switched = True
@@ -167,12 +167,16 @@ while True:
 
     if last_database_connection_state == "Down" and database_caller.is_connected():
         window.write_event_value('-DATABASE_CONNECTION_RESTORED-', True)
+        last_database_connection_state = "Up"
         continue
 
     if last_database_connection_state == "Up" and not database_caller.is_connected():
-        database_caller.reEstablishConnection()
         window.write_event_value('-DATABASE_CONNECTION_INTERRUPTED-', True)
+        last_database_connection_state = "Down"
         continue
+
+    if not database_caller.is_connected():
+        database_caller.reEstablishConnection()
 
     if event == "-CHECKOUT-":
         if shopping_cart.checkout():
