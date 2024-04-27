@@ -58,8 +58,6 @@ layout = [
 ]
 
 
-
-
 # Create the Window
 # TODO: window global?
 window = sg.Window (
@@ -112,6 +110,15 @@ def reset():
     window['-SUM-'].update('0€')
     shopping_cart.reset()
 
+def show_checkout_layout():
+    window['-MESSAGE_LAYOUT-'].update(visible=False)
+    window['-CHECKOUT_LAYOUT-'].update(visible=True)
+
+def show_message_layout(message):
+    window['-MESSAGE_LAYOUT-'].update(visible=True)
+    window['-CHECKOUT_LAYOUT-'].update(visible=False)
+    window['-MESSAGE-'].update(message)
+
 def layout_switcher(event, values):
 
     if event != "__TIMEOUT__":
@@ -119,34 +126,29 @@ def layout_switcher(event, values):
 
     switched = False
     if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
-            window['-MESSAGE_LAYOUT-'].update(visible=True)
-            window['-CHECKOUT_LAYOUT-'].update(visible=False)
-            window['-MESSAGE-'].update('Datenbank nicht erreichbar!')
-            stopMessageTimer()
-            switched = True
+        show_message_layout('Datenbank nicht erreichbar!')
+        stopMessageTimer()
+        switched = True
     elif event == '-CHECKOUT_SUCCESSFULL-':
-            window['-MESSAGE_LAYOUT-'].update(visible=True)
-            window['-CHECKOUT_LAYOUT-'].update(visible=False)
-            window['-MESSAGE-'].update(f"Erfolg! Guthaben: {values['-CHECKOUT_SUCCESSFULL-']}")
-            refreshMessageTimer()
-            switched = True
+        show_message_layout(f"Erfolg! Guthaben: {values['-CHECKOUT_SUCCESSFULL-']}")
+        refreshMessageTimer()
+        switched = True
     elif event == '-CHECKOUT_FAILED-':
-            window['-MESSAGE_LAYOUT-'].update(visible=True)
-            window['-CHECKOUT_LAYOUT-'].update(visible=False)
-            window['-MESSAGE-'].update(f"Das hat nicht geklappt.")
-            refreshMessageTimer()
-            switched = True
+        show_message_layout(f"Das hat nicht geklappt.")
+        refreshMessageTimer()
+        switched = True
     # return to default by db reconnect
     elif event == '-DATABASE_CONNECTION_RESTORED-':
-            window['-MESSAGE_LAYOUT-'].update(visible=False)
-            window['-CHECKOUT_LAYOUT-'].update(visible=True)
-            switched = True
+        show_checkout_layout()
+        switched = True
     # return to default by timer
     elif event == '-MESSAGE_TIMER-':
-            window['-MESSAGE_LAYOUT-'].update(visible=False)
-            window['-CHECKOUT_LAYOUT-'].update(visible=True)
-            switched = True
+        show_checkout_layout()
+        switched = True
+
     return switched
+
+
 
 # TODO: 
 # - test failed mysql transactions
