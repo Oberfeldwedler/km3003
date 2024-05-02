@@ -85,7 +85,11 @@ database_caller = mysql.MySql(mysql_settings_dict)
 last_database_connection_state = "Up"
 
 shopping_cart = classes.ShoppingCart(database_caller)
-scanner = scanner.Scanner(serial_settings_dict)
+
+if bool(serial_settings_dict["debug"]) == True:
+    scanner = scanner.ConsoleScanner(serial_settings_dict)
+else:
+    scanner = scanner.SerialScanner(serial_settings_dict)
 
 def refreshTimer(timeout, timer_id, custom_key):
     window.timer_stop(timer_id)
@@ -218,7 +222,7 @@ while True:
             window['-SUM-'].update(f"{sum}€")
         else:
             print("Barcode not unique in database or unknown.")
-            window.write_event_value('-BARCODE_UNKNOWN-', item.decode())
+            window.write_event_value('-BARCODE_UNKNOWN-', item)
 
         refreshInactivityTimer()
 

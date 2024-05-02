@@ -4,11 +4,55 @@ import serial
 import threading
 
 
-
 class Scanner():
+    
+    def __init__(self, settings: dict) -> None:
+        self.settings = settings;
+        
+    def getBarcode(self) -> str:
+        raise NotImplementedError()
+
+    def close(self) -> None:
+        pass
+
+class ConsoleScanner(Scanner):
+    def __init__(self, settings: dict) -> None:
+        super().__init__(settings)
+        
+        self.queue = queue.Queue()
+        
+        self.thread = threading.Thread(target=self.__readFromScanner, daemon=True)
+        self.thread.start()
+        
+        self.isStopRequested = False
+ 
+    def __readFromScanner(self):
+        while not self.isStopRequested:
+            try:
+                line = input()
+            except:
+                print("Cannot read from scanner.")
+                time.sleep(0.1)
+            self.queue.put(line, block=True, timeout=None)    
+    
+    def getBarcode(self) -> str:
+        if self.queue.empty() == False:
+            try: # TODO SAMMY Gleiches wie Unten, Anpassen wenn nötig!
+                item = self.queue.get(block=True)
+            except:
+                item = None
+        else:
+            item = None
+        return item
+    
+    def close(self) -> None:
+        self.isStopRequested = False
+
+class SerialScanner(Scanner):
 
     def __init__(self, serialSettingsDict):
-        self.q = queue.Queue()
+        super().__init__(serialSettingsDict)
+        self.queue = queue.Queue()
         self.ser = serial.serial_for_url(serialSettingsDict['port'], do_not_open=True)
         self.ser.baudrate = int(serialSettingsDict['baudrate'])
         self.ser.bytesize = int(serialSettingsDict['bytesize'])
@@ -16,23 +60,25 @@ class Scanner():
         self.ser.stopbits = int(serialSettingsDict['stopbits'])
         self.ser.timeout = None
         self.ser.open()
-
-        self.x = threading.Thread(target=self.__readFromScanner, daemon=True)
-        self.x.start()
+        
+        self.thread = threading.Thread(target=self.__readFromScanner, daemon=True)
+        self.thread.start()
+        
+        self.isStopRequested = False
  
     def __readFromScanner(self):
-        while True:
+        while not self.isStopRequested:
             try:
-                line = self.ser.readline()
+                line = self.ser.readline().decode()
             except:
                 print("Cannot read from scanner.")
                 time.sleep(0.1)
-            self.q.put(line, block=True, timeout=None)
+            self.queue.put(line, block=True, timeout=None)
 
     def getBarcode(self):
-        if self.q.empty() == False:
-            try: 
-                item = self.q.get(block=True)
+        if self.queue.empty() == False:
+            try: # TODO SAMMY Warum wird hier try-catched
+                item = self.queue.get(block=True)
             except:
                 item = None
         else:
@@ -40,4 +86,5 @@ class Scanner():
         return item
     
     def close(self):
+        self.isStopRequested = True
         self.ser.close()
