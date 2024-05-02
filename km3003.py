@@ -9,6 +9,9 @@ from lib import scanner
 import os
 import logging
 
+def str2bool(value : str) -> bool:
+    return value.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'ja', 'jawoll', 'definitiv', 'natürlich']
+
 if not os.path.exists("logs/"):
     os.mkdir("logs")
     
@@ -86,14 +89,13 @@ window = sg.Window (
         general_settings_dict['initial_height']
     ), 
     location=(0,0), 
-    keep_on_top=True,
+    keep_on_top=str2bool(general_settings_dict['keep_on_top']),
+    resizable=str2bool(general_settings_dict['resizable']),
     font=( 
         general_settings_dict['font'], 
         general_settings_dict['font_size'] 
     )
 )
-window.Resizable=True
-# window.print_event_values=True
 
 inactivity_timer_id = 0
 message_timer_id = 0
@@ -103,8 +105,10 @@ last_database_connection_state = "Up"
 
 shopping_cart = classes.ShoppingCart(database_caller)
 
-if bool(serial_settings_dict["debug"]) == True:
+if str2bool(serial_settings_dict["debug"]):
     scanner = scanner.ConsoleScanner(serial_settings_dict)
+    logger.warning("Console reader enabled! Barcode reader will not work!")
+    logger.warning("  Set  [serial]/debug to False to reenable the barcode reader!")
 else:
     scanner = scanner.SerialScanner(serial_settings_dict)
 
