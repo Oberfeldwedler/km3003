@@ -209,11 +209,12 @@ while True:
     item=scanner.getBarcode()
     if item:
         item = item.strip()
-        result, type = database_caller.runBarcodeAgainstDatabase(item)
-        if type == "user":
+        result = database_caller.runBarcodeAgainstDatabase(item)
+             
+        if isinstance(result, classes.User):
             shopping_cart.user = result
             window['-MEMBER-'].update(f"{result.name}       Guthaben: {result.current_balance}€")
-        elif type == "product":
+        elif isinstance(result, classes.Product):
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
             sum = 0

@@ -78,18 +78,16 @@ class MySql:
     def runBarcodeAgainstDatabase(self, barcode):
         user = self.getUserFromDatabase(barcode)
         product = self.getProductFromDatabase(barcode)
-        try:
-            if product != None and user == None:
-                return product, "product"
-            elif product == None and user != None:
-                return user, "user"
-            elif product != None and user != None:
-                raise MySqlDataError
-            else:
-                return None, None
-        except MySqlDataError:
+        
+        if product != None and user == None:
+            return product
+        elif product == None and user != None:
+            return user
+        elif product != None and user != None:
             print("Barcode is not unique in database.")
-            return None, None
+            return None
+        else:
+            return None
 
     def commitCurrentTransaction(self):
         try:
