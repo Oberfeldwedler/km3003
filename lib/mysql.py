@@ -38,10 +38,6 @@ class MySql:
     def isConnected(self):
         if self.cnx:
             return self.cnx.is_connected()
-
-    def createDictCursor(self):
-        self.dictCursor = self.cnx.cursor(buffered = True, dictionary = True)
- 
        
     def getUserFromDatabase(self, barcode):
         getUsers = ("SELECT * FROM users WHERE barcode=%s")
@@ -124,8 +120,3 @@ class MySql:
         except mysql.connector.Error as err:
             print("Failed to create database transaction: {}".format(err))
             return False
-
-
-    def checkout(self, user_id, products_list):
-        for product in products_list:
-            self.insertPurchaseIntoDatabase(user_id, product)
