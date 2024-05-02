@@ -35,7 +35,7 @@ class MySql:
         self.closeConnection()
         self.establishConnection()
 
-    def is_connected(self):
+    def isConnected(self):
         if self.cnx:
             return self.cnx.is_connected()
 

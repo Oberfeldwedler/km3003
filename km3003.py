@@ -173,17 +173,17 @@ while True:
     if layout_switcher(event, values):
         continue
 
-    if last_database_connection_state == "Down" and database_caller.is_connected():
+    if last_database_connection_state == "Down" and database_caller.isConnected():
         window.write_event_value('-DATABASE_CONNECTION_RESTORED-', True)
         last_database_connection_state = "Up"
         continue
 
-    if last_database_connection_state == "Up" and not database_caller.is_connected():
+    if last_database_connection_state == "Up" and not database_caller.isConnected():
         window.write_event_value('-DATABASE_CONNECTION_INTERRUPTED-', True)
         last_database_connection_state = "Down"
         continue
 
-    if not database_caller.is_connected():
+    if not database_caller.isConnected():
         database_caller.reEstablishConnection()
 
     if event == "-CHECKOUT-":
