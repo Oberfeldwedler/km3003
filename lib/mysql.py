@@ -1,6 +1,10 @@
 import mysql.connector
 from lib import classes
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class MySqlDataError(Exception):
     """Raised when data fetched from database is inconsistent."""
 
@@ -17,7 +21,7 @@ class MySql:
         try:
             self.cnx.close()
         except:
-            return
+            pass
 
     def establishConnection(self):
         try:
@@ -25,10 +29,10 @@ class MySql:
                                     host=self.hostAddress, port=self.portNumber,
                                     database=self.database, 
                                     connect_timeout=1)
-            print("Connection to database established.")
+            logger.info("Connection to database established.")
             self.dictCursor = self.cnx.cursor(dictionary=True, buffered=True)
         except mysql.connector.Error as err:
-            print(err)
+            logger.error(err)
 
 
     def reEstablishConnection(self):
@@ -52,7 +56,7 @@ class MySql:
             else:
                 return None
         except MySqlDataError:
-            print("Barcode is not unique in user database.")
+            logger.warning("Barcode is not unique in user database.")
             return None
 
     def getProductFromDatabase(self, barcode):
@@ -68,7 +72,7 @@ class MySql:
             else:
                 return None
         except MySqlDataError:
-            print("Barcode is not unique in product database.")
+            logger.warning("Barcode is not unique in product database.")
             return None
 
     def runBarcodeAgainstDatabase(self, barcode):
@@ -80,7 +84,7 @@ class MySql:
         elif product == None and user != None:
             return user
         elif product != None and user != None:
-            print("Barcode is not unique in database.")
+            logger.warning("Barcode is not unique in database.")
             return None
         else:
             return None
@@ -90,7 +94,7 @@ class MySql:
             self.cnx.commit()
             return True
         except mysql.connector.Error as err:
-            print("Failed to commit transaction: {}".format(err))
+            logger.error("Failed to commit transaction: {}".format(err))
             return False
 
     def updateUserBalance(self, user_id, new_balance):
@@ -101,7 +105,7 @@ class MySql:
             self.dictCursor.execute(updateBalance, ( new_balance, user_id ) )
             return True
         except mysql.connector.Error as err:
-            print("Failed to create database transaction: {}".format(err))
+            logger.error("Failed to create database transaction: {}".format(err))
             return False
 
     def insertPurchasesList(self, products_list, user_id):
@@ -118,5 +122,5 @@ class MySql:
             self.dictCursor.execute(insertPurchase, ( product_id, user_id, price_then ) )
             return True
         except mysql.connector.Error as err:
-            print("Failed to create database transaction: {}".format(err))
+            logger.error("Failed to create database transaction: {}".format(err))
             return False

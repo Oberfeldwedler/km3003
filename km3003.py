@@ -1,9 +1,26 @@
 import configparser
+import logging.handlers
 import PySimpleGUI as sg
 
 from lib import mysql
 from lib import classes
 from lib import scanner
+
+import os
+import logging
+
+if not os.path.exists("logs/"):
+    os.mkdir("logs")
+    
+formatter = logging.Formatter("[%(levelname)-7s] [%(asctime)s] %(name)10s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().addHandler(logging.handlers.RotatingFileHandler("logs/km3003.log", maxBytes=(1048576*5), backupCount=7))
+for handler in logging.getLogger().handlers:
+    handler.setFormatter(formatter)
+
+logger = logging.getLogger(__name__)
+logger.info("=========== NEW START OF KM3003 ===========")
 
 config = configparser.ConfigParser()
 config.read('km3003.conf')
@@ -40,7 +57,7 @@ footer = [
 
 message_layout = [
     [ sg.VPush() ],
-    [ sg.Push(), sg.Text("Geht grod ned!", font=("Arial", 44), text_color= "purple", key="-MESSAGE-"), sg.Push() ],
+    [ sg.Push(), sg.Text("Geht grod ned!", font=(general_settings_dict["font"], int(general_settings_dict["font_size"]) * 3), text_color= "purple", key="-MESSAGE-"), sg.Push() ],
     [ sg.VPush() ]
 ]
 
@@ -126,7 +143,7 @@ def show_message_layout(message):
 def layout_switcher(event, values):
 
     if event != "__TIMEOUT__":
-        print(event)
+        logger.debug(event)
 
     switched = False
     if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
@@ -150,7 +167,7 @@ def layout_switcher(event, values):
         show_checkout_layout()
         switched = True
     elif event == '-BARCODE_UNKNOWN-':
-        show_message_layout(f"Unbekannter Barcode: {values['-BARCODE_UNKNOWN-']}")
+        show_message_layout(f"Unbekannter Barcode:\n{values['-BARCODE_UNKNOWN-']}")
         refreshMessageTimer()
 
     return switched
@@ -191,7 +208,7 @@ while True:
             shopping_cart.refreshUser()
             window.write_event_value('-CHECKOUT_SUCCESSFULL-', shopping_cart.user.current_balance)
         else:
-            window.write_event_value('-CHECKOUT_FAILED-', shopping_cart.user.current_balance)
+            window.write_event_value('-CHECKOUT_FAILED-', None)
         reset()
         continue
 
@@ -222,7 +239,7 @@ while True:
                 sum += product.price
             window['-SUM-'].update(f"{sum}€")
         else:
-            print("Barcode not unique in database or unknown.")
+            logger.warning("Barcode not unique in database or unknown.")
             window.write_event_value('-BARCODE_UNKNOWN-', item)
 
         refreshInactivityTimer()
