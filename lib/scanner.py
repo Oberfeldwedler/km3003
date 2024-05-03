@@ -7,7 +7,7 @@ import threading
 class Scanner():
     
     def __init__(self, settings: dict) -> None:
-        self.settings = settings;
+        self.settings = settings
         
     def getBarcode(self) -> str:
         raise NotImplementedError()
@@ -22,9 +22,9 @@ class ConsoleScanner(Scanner):
         self.queue = queue.Queue()
         
         self.thread = threading.Thread(target=self.__readFromScanner, daemon=True)
+        self.isStopRequested = False
         self.thread.start()
         
-        self.isStopRequested = False
  
     def __readFromScanner(self):
         while not self.isStopRequested:
