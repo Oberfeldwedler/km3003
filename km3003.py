@@ -10,7 +10,7 @@ import os
 import logging
 
 def str2bool(value : str) -> bool:
-    return value.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'ja', 'jawoll', 'definitiv', 'natürlich']
+    return value.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'ja', 'jawoll', 'definitiv']
 
 if not os.path.exists("logs/"):
     os.mkdir("logs")
@@ -42,7 +42,7 @@ sum_row = [[
 ]]
 
 product_list = [
-    [ sg.Col( [], expand_x=True, key='-PRODUCT_LIST-', scrollable=True, vertical_scroll_only=True) ]
+    [ sg.Col( [], expand_x=True, key='-PRODUCT_LIST-') ]
 ]
 
 member_row = [[ sg.Text('Bitte Ausweis scannen', key='-MEMBER-') ]]
@@ -80,7 +80,6 @@ layout = [
 window = sg.Window (
     'KM3003',
     layout, 
-    no_titlebar=False,  
     size=( 
         general_settings_dict['initial_width'], 
         general_settings_dict['initial_height']
@@ -91,8 +90,13 @@ window = sg.Window (
     font=( 
         general_settings_dict['font'], 
         general_settings_dict['font_size'] 
-    )
+    ),
+    no_titlebar = str2bool(general_settings_dict["no_titlebar"])
 )
+
+if str2bool(general_settings_dict["maximize"]):
+    window.finalize()
+    window.maximize()
 
 inactivity_timer_id = 0
 message_timer_id = 0
@@ -124,6 +128,11 @@ def refreshMessageTimer():
 def stopMessageTimer():
     window.timer_stop(message_timer_id)
      
+def calculateSaldo(products_list):
+    sum = 0
+    for product in products_list:
+        sum += product.price
+    return sum
 
 def reset():
     for product in shopping_cart.products_list:
@@ -217,6 +226,9 @@ while True:
         row_number = event[1]
         shopping_cart.removeProductByRowNumber(row_number)
         window[('-ROW-',row_number)].update(visible=False)
+        sum = calculateSaldo(shopping_cart.products_list)
+        window['-SUM-'].update(f"{sum}€")
+
         continue
 
     item=scanner.getBarcode()
@@ -230,9 +242,7 @@ while True:
         elif isinstance(result, classes.Product):
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
-            sum = 0
-            for product in shopping_cart.products_list:
-                sum += product.price
+            sum = calculateSaldo(shopping_cart.products_list)
             window['-SUM-'].update(f"{sum}€")
         else:
             logger.warning("Barcode not unique in database or unknown.")
