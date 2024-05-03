@@ -37,10 +37,7 @@ class ConsoleScanner(Scanner):
     
     def getBarcode(self) -> str:
         if self.queue.empty() == False:
-            try: # TODO SAMMY Gleiches wie Unten, Anpassen wenn nötig!
-                item = self.queue.get(block=True)
-            except:
-                item = None
+            item = self.queue.get(block=True)
         else:
             item = None
         return item
@@ -77,10 +74,7 @@ class SerialScanner(Scanner):
 
     def getBarcode(self):
         if self.queue.empty() == False:
-            try: # TODO SAMMY Warum wird hier try-catched
-                item = self.queue.get(block=True)
-            except:
-                item = None
+            item = self.queue.get(block=True)
         else:
             item = None
         return item
