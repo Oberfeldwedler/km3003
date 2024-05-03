@@ -42,7 +42,7 @@ sum_row = [[
 ]]
 
 product_list = [
-    [ sg.Col( [], expand_x=True, key='-PRODUCT_LIST-') ]
+    [ sg.Col( [], expand_x=True, key='-PRODUCT_LIST-', scrollable=True, vertical_scroll_only=True) ]
 ]
 
 member_row = [[ sg.Text('Bitte Ausweis scannen', key='-MEMBER-') ]]
