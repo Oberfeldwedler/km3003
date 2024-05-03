@@ -2,3 +2,6 @@
 km3003.conf
 
 logs/**
+build/**
+dist/**
+km3003.spec
