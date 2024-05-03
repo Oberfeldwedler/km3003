@@ -62,9 +62,9 @@ class SerialScanner(Scanner):
         self.ser.open()
         
         self.thread = threading.Thread(target=self.__readFromScanner, daemon=True)
+        self.isStopRequested = False
         self.thread.start()
         
-        self.isStopRequested = False
  
     def __readFromScanner(self):
         while not self.isStopRequested:
