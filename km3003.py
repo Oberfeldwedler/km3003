@@ -77,9 +77,6 @@ layout = [
     ]
 ]
 
-
-# Create the Window
-# TODO: window global?
 window = sg.Window (
     'KM3003',
     layout, 
@@ -175,11 +172,6 @@ def layout_switcher(event, values):
         refreshMessageTimer()
 
     return switched
-
-
-
-# TODO: 
-# - test failed mysql transactions
 
 while True:
     event, values = window.read(timeout=1000)
