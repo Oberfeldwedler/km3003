@@ -77,6 +77,11 @@ layout = [
     ]
 ]
 
+if  str2bool(general_settings_dict['debug']):
+    general_settings_dict['resizable'] = "True"
+    general_settings_dict['no_titlebar'] = "False"
+    general_settings_dict['maximize'] = "False"
+
 window = sg.Window (
     'KM3003',
     layout, 
@@ -106,7 +111,7 @@ last_database_connection_state = "Up"
 
 shopping_cart = classes.ShoppingCart(database_caller)
 
-if str2bool(serial_settings_dict["debug"]):
+if str2bool(serial_settings_dict["console_input"]):
     scanner = scanner.ConsoleScanner(serial_settings_dict)
     logger.warning("Console reader enabled! Barcode reader will not work!")
     logger.warning("  Set  [serial]/debug to False to reenable the barcode reader!")
