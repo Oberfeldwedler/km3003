@@ -128,7 +128,7 @@ def refreshMessageTimer():
 def stopMessageTimer():
     window.timer_stop(message_timer_id)
      
-def calculateSaldo(products_list):
+def calculateTotalCheckoutSum(products_list):
     sum = 0
     for product in products_list:
         sum += product.price
@@ -226,9 +226,8 @@ while True:
         row_number = event[1]
         shopping_cart.removeProductByRowNumber(row_number)
         window[('-ROW-',row_number)].update(visible=False)
-        sum = calculateSaldo(shopping_cart.products_list)
-        window['-SUM-'].update(f"{sum}€")
-
+        total_checkout_sum = calculateTotalCheckoutSum(shopping_cart.products_list)
+        window['-SUM-'].update(f"{ total_checkout_sum}€")
         continue
 
     item=scanner.getBarcode()
@@ -242,8 +241,8 @@ while True:
         elif isinstance(result, classes.Product):
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
-            sum = calculateSaldo(shopping_cart.products_list)
-            window['-SUM-'].update(f"{sum}€")
+            total_checkout_sum = calculateTotalCheckoutSum(shopping_cart.products_list)
+            window['-SUM-'].update(f"{total_checkout_sum}€")
         else:
             logger.warning("Barcode not unique in database or unknown.")
             window.write_event_value('-BARCODE_UNKNOWN-', item)
