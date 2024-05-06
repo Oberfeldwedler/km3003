@@ -241,6 +241,7 @@ while True:
              
         if isinstance(result, classes.User):
             shopping_cart.user = result
+            result.user = database_caller.calculateAndUpdateUserBalance(result)
             window['-MEMBER-'].update(f"{result.name}       Guthaben: {result.current_balance}€")
         elif isinstance(result, classes.Product):
             shopping_cart.products_list.append(result)
