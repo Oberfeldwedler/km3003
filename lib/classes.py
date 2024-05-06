@@ -49,12 +49,14 @@ class ShoppingCart:
     def checkout(self):
         checkout_ready = not (self.user == None) and self.products_list
         if checkout_ready:
+            self.user = self.database_caller.calculateAndUpdateUserBalance(self.user)
             new_balance = self.user.current_balance
             for product in self.products_list:
                 new_balance -= product.price
-            transaction_complete = self.database_caller.insertPurchasesList(self.products_list, self.user.id)
-            transaction_complete &= self.database_caller.updateUserBalance(self.user.id, new_balance)
+            transaction_complete = self.database_caller.insertPurchasesList(self.products_list, self.user)
+            transaction_complete &= self.database_caller.updateUserBalance(self.user, new_balance)
             if transaction_complete:
+                self.user = self.database_caller.calculateAndUpdateUserBalance(self.user)
                 return self.database_caller.commitCurrentTransaction()
             else:
                 return False

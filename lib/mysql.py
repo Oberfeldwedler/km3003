@@ -58,7 +58,7 @@ class MySql:
         except MySqlDataError:
             logger.warning("Barcode is not unique in user database.")
             return None
-
+        
     def getProductFromDatabase(self, barcode):
         getProducts = ("SELECT * FROM products WHERE barcode=%s")
         try:
@@ -97,29 +97,53 @@ class MySql:
             logger.error("Failed to commit transaction: {}".format(err))
             return False
 
-    def updateUserBalance(self, user_id, new_balance):
+    def calculateUserBalance(self, user):
+        get_purchases = ("SELECT price_then FROM purchases WHERE user_id=%s")
+        get_deposits = ("SELECT amount FROM deposits WHERE user_id=%s")
+        sum_of_purchases = 0
+        sum_of_deposits = 0
+        try:
+            self.dictCursor.execute(get_purchases, ( user.id, ) )
+            for purchase in self.dictCursor:
+                sum_of_purchases += purchase["price_then"]
+            self.dictCursor.execute(get_deposits, ( user.id, ) )
+            for deposit in self.dictCursor:
+                sum_of_deposits += deposit["amount"]
+        except MySqlDataError:
+            logger.warning("Failed to calculate current user balance.")
+            return None
+        new_balance = sum_of_deposits-sum_of_purchases
+        return new_balance
+
+    def updateUserBalance(self, user, new_balance):
         updateBalance = ( 
             "UPDATE users SET current_balance=%s WHERE (id=%s)"
         )
         try:
-            self.dictCursor.execute(updateBalance, ( new_balance, user_id ) )
+            self.dictCursor.execute(updateBalance, ( new_balance, user.id ) )
             return True
         except mysql.connector.Error as err:
             logger.error("Failed to create database transaction: {}".format(err))
             return False
 
-    def insertPurchasesList(self, products_list, user_id):
+    def calculateAndUpdateUserBalance(self, user):
+        new_balance = self.calculateUserBalance(user)
+        self.updateUserBalance(user, new_balance)
+        user.current_balance = new_balance
+        return user
+
+    def insertPurchasesList(self, products_list, user):
         success = True
         for product in products_list:
-            success &= self.insertPurchase(product.id, user_id, product.price)
-        return success   
+            success &= self.insertPurchase(product, user)
+        return success
 
-    def insertPurchase(self, product_id, user_id, price_then):
+    def insertPurchase(self, product, user):
         insertPurchase = (
             "INSERT INTO purchases (product_id, user_id, price_then) VALUES (%s, %s, %s)"
         )
         try:
-            self.dictCursor.execute(insertPurchase, ( product_id, user_id, price_then ) )
+            self.dictCursor.execute(insertPurchase, ( product.id, user.id, product.price ) )
             return True
         except mysql.connector.Error as err:
             logger.error("Failed to create database transaction: {}".format(err))

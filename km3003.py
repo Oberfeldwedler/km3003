@@ -132,7 +132,7 @@ def refreshMessageTimer():
 
 def stopMessageTimer():
     window.timer_stop(message_timer_id)
-     
+
 def calculateTotalCheckoutSum(products_list):
     sum = 0
     for product in products_list:
@@ -215,7 +215,6 @@ while True:
 
     if event == "-CHECKOUT-":
         if shopping_cart.checkout():
-            shopping_cart.refreshUser()
             window.write_event_value('-CHECKOUT_SUCCESSFULL-', shopping_cart.user.current_balance)
         else:
             window.write_event_value('-CHECKOUT_FAILED-', None)
