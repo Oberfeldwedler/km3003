@@ -18,22 +18,29 @@ class MySql:
         self.cnx = mysql.connector.connect()
 
     def closeConnection(self):
+        logger.info("Connection to database closed.")
         try:
             self.cnx.close()
         except:
+            logging.warning("Connection to database could not be closed! Ignoring!")
             pass
 
     def establishConnection(self):
         try:
+            logger.debug("Trying to connect to database:")
+            logger.debug(f"HOST={self.hostAddress}:{self.portNumber}, USER={self.username}, DB={self.database}")
             self.cnx = mysql.connector.connect(user=self.username, password=self.password,
                                     host=self.hostAddress, port=self.portNumber,
                                     database=self.database, 
                                     connect_timeout=1)
-            logger.info("Connection to database established.")
+        
             self.dictCursor = self.cnx.cursor(dictionary=True, buffered=True)
+            
+            logger.info("Connection to database established.")
+            
         except mysql.connector.Error as err:
+            logger.error("Cannot connect to database!")
             logger.error(err)
-
 
     def reEstablishConnection(self):
         self.closeConnection()
@@ -44,36 +51,45 @@ class MySql:
             return self.cnx.is_connected()
        
     def getUserFromDatabase(self, barcode):
-        getUsers = ("SELECT * FROM users WHERE barcode=%s")
+        query = ("SELECT * FROM users WHERE barcode=%s")
         try:
-            self.dictCursor.execute(getUsers, ( barcode, ) )
+            
+            logger.debug(f"QUERY(SELECT, USER): bardcode={barcode}")
+            self.dictCursor.execute(query, ( barcode, ) )
             rowCount = self.dictCursor.rowcount
+            
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
                 return classes.User(dataDict['id'], barcode, dataDict['name'], dataDict['current_balance'])
-            if rowCount > 1:
-                raise MySqlDataError
-            else:
-                return None
-        except MySqlDataError:
-            logger.warning("Barcode is not unique in user database.")
-            return None
+            elif rowCount > 1:
+                logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")
+        
+        except MySqlDataError as err:
+            logger.error("Error during SELECT from table USER")
+            logger.error(err)
+            
+        return None
         
     def getProductFromDatabase(self, barcode):
-        getProducts = ("SELECT * FROM products WHERE barcode=%s")
+        
+        query = ("SELECT * FROM products WHERE barcode=%s")
         try:
-            self.dictCursor.execute(getProducts, ( barcode, ) )
+            
+            logger.debug(f"QUERY(SELECT, PRODUCT): bardcode={barcode}")
+            self.dictCursor.execute(query, ( barcode, ) )
             rowCount = self.dictCursor.rowcount
+            
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
                 return classes.Product(dataDict['id'], barcode, dataDict['name'], dataDict['sell_price'])
-            if rowCount > 1:
-                raise MySqlDataError
-            else:
-                return None
-        except MySqlDataError:
-            logger.warning("Barcode is not unique in product database.")
-            return None
+            elif rowCount > 1:
+                logger.error(f"Barcode {barcode} does not identify a unique product! ({rowCount} results)")
+                
+        except MySqlDataError as err:
+            logger.error("Error during SELECT from table USER")
+            logger.error(err)
+            
+        return None
 
     def runBarcodeAgainstDatabase(self, barcode):
         user = self.getUserFromDatabase(barcode)
@@ -84,34 +100,47 @@ class MySql:
         elif product == None and user != None:
             return user
         elif product != None and user != None:
-            logger.warning("Barcode is not unique in database.")
+            logger.error(f"Barcode {barcode} is both a user and product!")
             return None
         else:
+            logger.warning(f"Barcode {barcode} is neither user nor product!")
             return None
 
     def commitCurrentTransaction(self):
         try:
             self.cnx.commit()
+            logger.debug("Commiting query to database.")
             return True
         except mysql.connector.Error as err:
-            logger.error("Failed to commit transaction: {}".format(err))
+            logger.error("Failed to commit transaction to database!")
+            logger.error(err)
             return False
 
     def calculateUserBalance(self, user):
+        
         get_purchases = ("SELECT price_then FROM purchases WHERE user_id=%s")
         get_deposits = ("SELECT amount FROM deposits WHERE user_id=%s")
+        
         sum_of_purchases = 0
         sum_of_deposits = 0
+        
         try:
-            self.dictCursor.execute(get_purchases, ( user.id, ) )
+            
+            logger.debug(f"QUERY(SELECT, PURCHASES): user_id={user.id}")
+            self.dictCursor.execute(get_purchases, ( user.id, ) ) 
             for purchase in self.dictCursor:
                 sum_of_purchases += purchase["price_then"]
+                
+            logger.debug(f"QUERY(SELECT, DEPOSITS): user_id={user.id}")
             self.dictCursor.execute(get_deposits, ( user.id, ) )
             for deposit in self.dictCursor:
                 sum_of_deposits += deposit["amount"]
-        except MySqlDataError:
-            logger.warning("Failed to calculate current user balance.")
+                
+        except MySqlDataError as err:
+            logger.error("Failed to calculate current user balance.")
+            logger.error(err)
             return None
+        
         new_balance = sum_of_deposits-sum_of_purchases
         return new_balance
 
@@ -120,10 +149,13 @@ class MySql:
             "UPDATE users SET current_balance=%s WHERE (id=%s)"
         )
         try:
+            logger.debug(f"QUERY(UPDATE, USERS): user={user.id}, current_balance={new_balance}")
             self.dictCursor.execute(updateBalance, ( new_balance, user.id ) )
             return True
+        
         except mysql.connector.Error as err:
-            logger.error("Failed to create database transaction: {}".format(err))
+            logger.error("Failed to update user balance in database:")
+            logger.error(err)
             return False
 
     def calculateAndUpdateUserBalance(self, user):
@@ -143,8 +175,10 @@ class MySql:
             "INSERT INTO purchases (product_id, user_id, price_then) VALUES (%s, %s, %s)"
         )
         try:
+            logger.debug(f"QUERY(INSERT, PURCHASES): product_id={product.id}, user_id={user.id}")
             self.dictCursor.execute(insertPurchase, ( product.id, user.id, product.price ) )
             return True
         except mysql.connector.Error as err:
-            logger.error("Failed to create database transaction: {}".format(err))
+            logger.error("Failed to insert purchase into database:")
+            logger.error(err)
             return False

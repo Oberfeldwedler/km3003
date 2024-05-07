@@ -9,6 +9,14 @@ from lib import scanner
 import os
 import logging
 
+config = configparser.ConfigParser()
+config.read('km3003.conf')
+general_settings_dict = dict(config['general'])
+mysql_settings_dict = dict(config['mysql'])
+serial_settings_dict = dict(config['serial'])
+inactivity_timeout = int(general_settings_dict['screen_timeout_ms'])
+message_timeout = int(general_settings_dict['message_timeout_ms'])
+
 def str2bool(value : str) -> bool:
     return value.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'ja', 'jawoll', 'definitiv']
 
@@ -17,21 +25,17 @@ if not os.path.exists("logs/"):
     
 formatter = logging.Formatter("[%(levelname)-7s] [%(asctime)s] %(name)10s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
-logging.getLogger().addHandler(logging.handlers.RotatingFileHandler("logs/km3003.log", maxBytes=(1048576*5), backupCount=7))
+logging.getLogger().setLevel(general_settings_dict.get("logging", "INFO").upper())
+log_handler = logging.handlers.RotatingFileHandler("logs/km3003.log", maxBytes=(1048576*5), backupCount=7)
+logging.getLogger().addHandler(log_handler)
 for handler in logging.getLogger().handlers:
     handler.setFormatter(formatter)
+log_handler.doRollover()
+
 
 logger = logging.getLogger(__name__)
+logger_event = logging.getLogger("event")
 logger.info("=========== NEW START OF KM3003 ===========")
-
-config = configparser.ConfigParser()
-config.read('km3003.conf')
-general_settings_dict = dict(config['general'])
-mysql_settings_dict = dict(config['mysql'])
-serial_settings_dict = dict(config['serial'])
-inactivity_timeout = int(general_settings_dict['screen_timeout_ms'])
-message_timeout = int(general_settings_dict['message_timeout_ms'])
 
 sg.theme(general_settings_dict['theme'])
 
@@ -114,7 +118,7 @@ shopping_cart = classes.ShoppingCart(database_caller)
 if str2bool(serial_settings_dict["console_input"]):
     scanner = scanner.ConsoleScanner(serial_settings_dict)
     logger.warning("Console reader enabled! Barcode reader will not work!")
-    logger.warning("  Set  [serial]/debug to False to reenable the barcode reader!")
+    logger.warning("  Set  [serial]/console_input to False to reenable the barcode reader!")
 else:
     scanner = scanner.SerialScanner(serial_settings_dict)
 
@@ -151,6 +155,8 @@ def show_checkout_layout():
     window['-CHECKOUT_LAYOUT-'].update(visible=True)
 
 def show_message_layout(message):
+    logger.info(f"Displaying message: '{message}'")
+    
     window['-MESSAGE_LAYOUT-'].update(visible=True)
     window['-CHECKOUT_LAYOUT-'].update(visible=False)
     window['-MESSAGE-'].update(message)
@@ -158,7 +164,7 @@ def show_message_layout(message):
 def layout_switcher(event, values):
 
     if event != "__TIMEOUT__":
-        logger.debug(event)
+        logger_event.debug(f"{event}")
 
     switched = False
     if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
@@ -231,25 +237,29 @@ while True:
         shopping_cart.removeProductByRowNumber(row_number)
         window[('-ROW-',row_number)].update(visible=False)
         total_checkout_sum = calculateTotalCheckoutSum(shopping_cart.products_list)
-        window['-SUM-'].update(f"{ total_checkout_sum}€")
+        window['-SUM-'].update(f"{ total_checkout_sum}€")        
         continue
 
     item=scanner.getBarcode()
     if item:
         item = item.strip()
+        logger.info(f"New barcode was scanned: {item}")
         result = database_caller.runBarcodeAgainstDatabase(item)
              
         if isinstance(result, classes.User):
             shopping_cart.user = result
             result.user = database_caller.calculateAndUpdateUserBalance(result)
             window['-MEMBER-'].update(f"{result.name}       Guthaben: {result.current_balance}€")
+            
+            logger.debug(f"User '{result.name}' was detected!")
         elif isinstance(result, classes.Product):
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
             total_checkout_sum = calculateTotalCheckoutSum(shopping_cart.products_list)
             window['-SUM-'].update(f"{total_checkout_sum}€")
+            
+            logger.debug(f"Product '{result.name}' was detected!")
         else:
-            logger.warning("Barcode not unique in database or unknown.")
             window.write_event_value('-BARCODE_UNKNOWN-', item)
 
         refreshInactivityTimer()

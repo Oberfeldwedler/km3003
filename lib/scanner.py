@@ -3,6 +3,9 @@ import queue
 import serial
 import threading
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Scanner():
     
@@ -30,10 +33,12 @@ class ConsoleScanner(Scanner):
         while not self.isStopRequested:
             try:
                 line = input()
-            except:
-                print("Cannot read from scanner.")
+                self.queue.put(line, block=True, timeout=None)    
+            except Exception as e:
+                logger.error("Cannot read from console!")
+                logger.error(e)
                 time.sleep(0.1)
-            self.queue.put(line, block=True, timeout=None)    
+
     
     def getBarcode(self) -> str:
         if self.queue.empty() == False:
@@ -67,10 +72,11 @@ class SerialScanner(Scanner):
         while not self.isStopRequested:
             try:
                 line = self.ser.readline().decode()
-            except:
-                print("Cannot read from scanner.")
+                self.queue.put(line, block=True, timeout=None)
+            except Exception as e:
+                logger.error(f"Cannot read from serial device!")
+                logger.error(e)
                 time.sleep(0.1)
-            self.queue.put(line, block=True, timeout=None)
 
     def getBarcode(self):
         if self.queue.empty() == False:
