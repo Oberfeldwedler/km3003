@@ -10,12 +10,14 @@ class MySqlDataError(Exception):
 
 class MySql:
     def __init__(self, mySqlSettingsDict):
+        self.__connectionActive = False
         self.hostAddress = mySqlSettingsDict["host_address"]
         self.portNumber = int(mySqlSettingsDict["port_number"])
         self.username = mySqlSettingsDict["username"]
         self.password = mySqlSettingsDict["password"]
         self.database = mySqlSettingsDict["database"]
-        self.cnx = mysql.connector.connect()
+        self.cnx = None
+        
 
     def closeConnection(self):
         logger.info("Connection to database closed.")
@@ -32,23 +34,33 @@ class MySql:
             self.cnx = mysql.connector.connect(user=self.username, password=self.password,
                                     host=self.hostAddress, port=self.portNumber,
                                     database=self.database, 
-                                    connect_timeout=1)
-        
+                                    connection_timeout=1, use_pure=True)
             self.dictCursor = self.cnx.cursor(dictionary=True, buffered=True)
-            
+            self.__connectionActive = True
             logger.info("Connection to database established.")
+            return True
             
         except mysql.connector.Error as err:
             logger.error("Cannot connect to database!")
             logger.error(err)
+            self.__connectionActive = False
+            return False
+       
+    def ensureDatabaseConnection(self):
+        lastConnectionState = self.__connectionActive
+        if self.cnx == None:
+            self.establishConnection()
+        else:
+            try:
+                self.cnx.ping(reconnect=True, attempts=1, delay=0)
+                self.connectionActive = True
+            except:
+                self.connectionActive = False
 
-    def reEstablishConnection(self):
-        self.closeConnection()
-        self.establishConnection()
+        connectionStateChanged = self.__connectionActive^ lastConnectionState #XOR
 
-    def isConnected(self):
-        if self.cnx:
-            return self.cnx.is_connected()
+        return self.__connectionActive, connectionStateChanged
+
        
     def getUserFromDatabase(self, barcode):
         query = ("SELECT * FROM users WHERE barcode=%s")
