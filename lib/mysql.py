@@ -37,6 +37,14 @@ class MySql:
             logger.error(err)
             self.__connectionActive = False
             return False
+        
+    def closeConnection(self):
+        logger.info("Connection to database closed.")
+        try:
+            self.connection.close()
+        except:
+            logging.warning("Connection to database could not be closed! Ignoring!")
+            pass
        
     def ensureDatabaseConnection(self):
         lastConnectionState = self.__connectionActive
