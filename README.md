@@ -1,17 +1,26 @@
 # km3003
 
-## Setup IDE
+## Setup
 
 ### Windows
 
+1. install python
+    - do *NOT* install als admin
+    - set the checkbox to add to `PATH`
 
-```
-python -m pip install pysimplegui
-python -m pip install pyserial
-python -m pip install mysql-connector-python
-```
+2. install python libraries
+    ```
+    python -m pip install pysimplegui pyserial pymysql
+    ```
 
+3. setup km3003.conf
+    - make a copy of `km3003_sample.conf` and name it `km3003.conf` 
+    - customize database info
+    - customize COM port
 
+4. TODO: get hobby pysimplegui license key from pysimplegui.com 
+ 
+4. TODO: configure scheduled reboot and updates
 
 ## How to create .exe
 
