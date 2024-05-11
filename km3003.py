@@ -204,11 +204,12 @@ while True:
 
     if layout_switcher(event, values):
         continue
-    
+
     database_active, database_state_change = database_caller.ensureDatabaseConnection()
 
-    print(database_active)
-    print(database_state_change)
+    if database_state_change:
+        logger.debug(f"database_state_change: {database_state_change}")
+        logger.debug(f"database_active: {database_active}")
 
     if database_state_change:
         if database_active:

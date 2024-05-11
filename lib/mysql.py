@@ -1,4 +1,6 @@
 import mysql.connector
+import pymysql.cursors
+
 from lib import classes
 
 import logging
@@ -16,31 +18,21 @@ class MySql:
         self.username = mySqlSettingsDict["username"]
         self.password = mySqlSettingsDict["password"]
         self.database = mySqlSettingsDict["database"]
-        self.cnx = None
-        
-
-    def closeConnection(self):
-        logger.info("Connection to database closed.")
-        try:
-            self.cnx.close()
-        except:
-            logging.warning("Connection to database could not be closed! Ignoring!")
-            pass
+        self.connection = None  
 
     def establishConnection(self):
         try:
             logger.debug("Trying to connect to database:")
             logger.debug(f"HOST={self.hostAddress}:{self.portNumber}, USER={self.username}, DB={self.database}")
-            self.cnx = mysql.connector.connect(user=self.username, password=self.password,
+            self.connection = pymysql.connect(user=self.username, password=self.password,
                                     host=self.hostAddress, port=self.portNumber,
                                     database=self.database, 
-                                    connection_timeout=1, use_pure=True)
-            self.dictCursor = self.cnx.cursor(dictionary=True, buffered=True)
+                                    read_timeout=1, write_timeout=1, connect_timeout=1)
+            self.dictCursor = self.connection.cursor(pymysql.cursors.DictCursor)
             self.__connectionActive = True
             logger.info("Connection to database established.")
             return True
-            
-        except mysql.connector.Error as err:
+        except Exception as err:
             logger.error("Cannot connect to database!")
             logger.error(err)
             self.__connectionActive = False
@@ -48,16 +40,16 @@ class MySql:
        
     def ensureDatabaseConnection(self):
         lastConnectionState = self.__connectionActive
-        if self.cnx == None:
+        if self.connection == None:
             self.establishConnection()
         else:
             try:
-                self.cnx.ping(reconnect=True, attempts=1, delay=0)
-                self.connectionActive = True
+                self.connection.ping(reconnect=True)
+                self.__connectionActive = True
             except:
-                self.connectionActive = False
+                self.__connectionActive = False
 
-        connectionStateChanged = self.__connectionActive^ lastConnectionState #XOR
+        connectionStateChanged = self.__connectionActive ^ lastConnectionState #XOR
 
         return self.__connectionActive, connectionStateChanged
 
@@ -118,9 +110,12 @@ class MySql:
             logger.warning(f"Barcode {barcode} is neither user nor product!")
             return None
 
+    def beginTransaction(self):
+        self.connection.begin()
+
     def commitCurrentTransaction(self):
         try:
-            self.cnx.commit()
+            self.connection.commit()
             logger.debug("Commiting query to database.")
             return True
         except mysql.connector.Error as err:

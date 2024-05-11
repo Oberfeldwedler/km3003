@@ -53,6 +53,7 @@ class ShoppingCart:
             new_balance = self.user.current_balance
             for product in self.products_list:
                 new_balance -= product.price
+            self.database_caller.beginTransaction()
             transaction_complete = self.database_caller.insertPurchasesList(self.products_list, self.user)
             transaction_complete &= self.database_caller.updateUserBalance(self.user, new_balance)
             if transaction_complete:
