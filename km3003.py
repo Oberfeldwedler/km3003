@@ -107,6 +107,8 @@ if str2bool(general_settings_dict["maximize"]):
     window.finalize()
     window.maximize()
 
+window.read(timeout=1000)
+
 inactivity_timer_id = 0
 message_timer_id = 0
 
@@ -114,12 +116,18 @@ database_caller = mysql.MySql(mysql_settings_dict)
 
 shopping_cart = classes.ShoppingCart(database_caller)
 
+def scannerStateChangeCallback(newScannerState):
+    if newScannerState:
+        window.write_event_value('-SCANNER_CONNECTION_RESTORED-', True)
+    else:
+        window.write_event_value('-SCANNER_CONNECTION_INTERRUPTED-', True)
+
 if str2bool(serial_settings_dict["console_input"]):
     scanner = scanner.ConsoleScanner(serial_settings_dict)
     logger.warning("Console reader enabled! Barcode reader will not work!")
     logger.warning("  Set  [serial]/console_input to False to reenable the barcode reader!")
 else:
-    scanner = scanner.SerialScanner(serial_settings_dict)
+    scanner = scanner.SerialScanner(serial_settings_dict, scannerStateChangeCallback)
 
 def refreshTimer(timeout, timer_id, custom_key):
     window.timer_stop(timer_id)
@@ -160,6 +168,9 @@ def show_message_layout(message):
     window['-CHECKOUT_LAYOUT-'].update(visible=False)
     window['-MESSAGE-'].update(message)
 
+# TODO: Use match instead of elif
+# TODO: Handle multiple message events
+
 def layout_switcher(event, values):
 
     if event != "__TIMEOUT__":
@@ -170,6 +181,10 @@ def layout_switcher(event, values):
         show_message_layout('Datenbank nicht erreichbar!')
         stopMessageTimer()
         switched = True
+    elif event == '-DATABASE_CONNECTION_RESTORED-':
+        # return to default by db reconnect
+        show_checkout_layout()
+        switched = True
     elif event == '-CHECKOUT_SUCCESSFULL-':
         show_message_layout(f"Erfolg! Guthaben: {values['-CHECKOUT_SUCCESSFULL-']}")
         refreshMessageTimer()
@@ -178,19 +193,22 @@ def layout_switcher(event, values):
         show_message_layout(f"Das hat nicht geklappt.")
         refreshMessageTimer()
         switched = True
-    # return to default by db reconnect
-    elif event == '-DATABASE_CONNECTION_RESTORED-':
-        show_checkout_layout()
-        switched = True
-    # return to default by timer
     elif event == '-MESSAGE_TIMER-':
+        # return to default by timer
         show_checkout_layout()
         switched = True
     elif event == '-BARCODE_UNKNOWN-':
         show_message_layout(f"Unbekannter Barcode:\n{values['-BARCODE_UNKNOWN-']}")
         refreshMessageTimer()
-
+    elif  event == '-SCANNER_CONNECTION_INTERRUPTED-':
+        show_message_layout('Scanner nicht verfügbar!')
+        stopMessageTimer()
+        switched = True
+    elif event == '-SCANNER_CONNECTION_RESTORED-':
+        show_checkout_layout()
+        switched = True
     return switched
+
 
 while True:
     event, values = window.read(timeout=1000)

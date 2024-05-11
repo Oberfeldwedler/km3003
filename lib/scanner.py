@@ -14,6 +14,9 @@ class Scanner():
         
     def getBarcode(self) -> str:
         raise NotImplementedError()
+    
+    def isConnected(self) -> bool:
+        pass
 
     def close(self) -> None:
         pass
@@ -47,36 +50,60 @@ class ConsoleScanner(Scanner):
             item = None
         return item
     
+    def isConnected(self) -> bool:
+        return True
+
     def close(self) -> None:
         self.isStopRequested = False
 
 class SerialScanner(Scanner):
 
-    def __init__(self, serialSettingsDict):
+    def __init__(self, serialSettingsDict, scannerStateChangeCallback ):
         super().__init__(serialSettingsDict)
         self.queue = queue.Queue()
-        self.ser = serial.serial_for_url(serialSettingsDict['port'], do_not_open=True)
-        self.ser.baudrate = int(serialSettingsDict['baudrate'])
-        self.ser.bytesize = int(serialSettingsDict['bytesize'])
-        self.ser.parity = serialSettingsDict['parity']
-        self.ser.stopbits = int(serialSettingsDict['stopbits'])
-        self.ser.timeout = None
-        self.ser.open()
-        
+        self.__scannerStateChangeCallback = scannerStateChangeCallback
+        self.__connectionActive = False
+        self.__scannerStateChangeCallback(self.__connectionActive)
+
         self.thread = threading.Thread(target=self.__readFromScanner, daemon=True)
         self.isStopRequested = False
         self.thread.start()
+
+    def __constructSerialConnection(self):
+        ser = serial.serial_for_url(self.settings['port'], do_not_open=True)
+        ser.baudrate = int(self.settings['baudrate'])
+        ser.bytesize = int(self.settings['bytesize'])
+        ser.parity = self.settings['parity']
+        ser.stopbits = int(self.settings['stopbits'])
+        ser.timeout = None
+        return ser
         
+    def __openSerialConnection(self):
+        try:
+            self.ser = self.__constructSerialConnection()
+            self.ser.open()
+            self.__connectionActive = True
+            self.__scannerStateChangeCallback(self.__connectionActive)
+        except:
+            logging.debug("Connection to serial device could not be opened! Ignoring!")
+            time.sleep(1)
+            pass
  
     def __readFromScanner(self):
         while not self.isStopRequested:
-            try:
-                line = self.ser.readline().decode()
-                self.queue.put(line, block=True, timeout=None)
-            except Exception as e:
-                logger.error(f"Cannot read from serial device!")
-                logger.error(e)
-                time.sleep(0.1)
+            if self.__connectionActive:
+                try:
+                    line = self.ser.readline().decode()
+                    self.queue.put(line, block=True, timeout=None)
+                except Exception as e:
+                    logger.error(f"Cannot read from serial device!")
+                    logger.error(e)
+                    self.__connectionActive = False
+                    self.__scannerStateChangeCallback(self.__connectionActive)
+                    pass
+            else:
+                self.__openSerialConnection()
+                
 
     def getBarcode(self):
         if self.queue.empty() == False:
@@ -84,6 +111,9 @@ class SerialScanner(Scanner):
         else:
             item = None
         return item
+    
+    def isConnected(self) -> bool:
+        return self.__connectionActive
     
     def close(self):
         self.isStopRequested = True
