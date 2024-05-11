@@ -1,4 +1,3 @@
-import mysql.connector
 import pymysql.cursors
 
 from lib import classes
