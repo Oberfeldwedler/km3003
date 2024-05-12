@@ -100,7 +100,8 @@ class SerialScanner(Scanner):
                     logger.error(e)
                     self.__connectionState = "down"
                     self.__scannerStateChangeCallback(self.__connectionState)
-                    pass
+                    self.close()
+                    return
             else:
                 self.__openSerialConnection()
                 
