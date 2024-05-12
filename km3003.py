@@ -203,7 +203,7 @@ def layout_switcher(event, values):
                 refreshMessageTimer()
                 switched = True
             else:
-                showMessageLayout(f"Erfolg! Guthaben: {values['-CHECKOUT_SUCCESSFULL-']}")
+                showMessageLayout(f"Erfolg! Guthaben: {values['-CHECKOUT_EVENT-']}")
                 refreshMessageTimer()
                 switched = True
 
