@@ -131,7 +131,7 @@ class MySql:
             self.connection.commit()
             logger.debug("Commiting query to database.")
             return True
-        except mysql.connector.Error as err:
+        except Exception as err:
             logger.error("Failed to commit transaction to database!")
             logger.error(err)
             return False
@@ -156,7 +156,7 @@ class MySql:
             for deposit in self.dictCursor:
                 sum_of_deposits += deposit["amount"]
                 
-        except MySqlDataError as err:
+        except Exception as err:
             logger.error("Failed to calculate current user balance.")
             logger.error(err)
             return None
@@ -171,9 +171,8 @@ class MySql:
         try:
             logger.debug(f"QUERY(UPDATE, USERS): user={user.id}, current_balance={new_balance}")
             self.dictCursor.execute(updateBalance, ( new_balance, user.id ) )
-            return True
-        
-        except mysql.connector.Error as err:
+            return self.commitCurrentTransaction()
+        except Exception as err:
             logger.error("Failed to update user balance in database:")
             logger.error(err)
             return False
@@ -198,7 +197,7 @@ class MySql:
             logger.debug(f"QUERY(INSERT, PURCHASES): product_id={product.id}, user_id={user.id}")
             self.dictCursor.execute(insertPurchase, ( product.id, user.id, product.price ) )
             return True
-        except mysql.connector.Error as err:
+        except Exception as err:
             logger.error("Failed to insert purchase into database:")
             logger.error(err)
             return False
