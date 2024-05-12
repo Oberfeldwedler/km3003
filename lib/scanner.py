@@ -15,6 +15,9 @@ class Scanner():
     def getBarcode(self) -> str:
         raise NotImplementedError()
     
+    def isConnected(self) -> bool:
+        pass
+
     def close(self) -> None:
         pass
 
@@ -46,7 +49,10 @@ class ConsoleScanner(Scanner):
         else:
             item = None
         return item
-
+    
+    def isConnected(self) -> bool:
+        return True
+    
     def close(self) -> None:
         self.isStopRequested = False
 
@@ -106,6 +112,9 @@ class SerialScanner(Scanner):
         else:
             item = None
         return item
+    
+    def isConnected(self) -> bool:
+        return self.__connectionActive
     
     def close(self):
         self.isStopRequested = True

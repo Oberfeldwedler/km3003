@@ -19,6 +19,9 @@ class MySql:
         self.database = mySqlSettingsDict["database"]
         self.connection = None  
 
+    def isConnected(self):
+        return self.__connectionState
+
     def establishConnection(self):
         try:
             logger.debug("Trying to connect to database:")
