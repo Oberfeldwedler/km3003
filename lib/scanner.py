@@ -85,7 +85,6 @@ class SerialScanner(Scanner):
             self.__scannerStateChangeCallback(self.__connectionState)
         except:
             self.__connectionState = "down"
-            self.__scannerStateChangeCallback(self.__connectionState)
             logging.debug("Connection to serial device could not be opened! Ignoring!")
             time.sleep(1)
             pass
