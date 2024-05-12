@@ -198,12 +198,12 @@ def layout_switcher(event, values):
                 switched = True
 
         case '-CHECKOUT_EVENT-':
-            if isinstance(values['-CHECKOUT_EVENT-'], float):
-                showMessageLayout(f"Erfolg! Guthaben: {values['-CHECKOUT_SUCCESSFULL-']}")
+            if values['-CHECKOUT_EVENT-'] == None:
+                showMessageLayout(f"Das hat nicht geklappt.")
                 refreshMessageTimer()
                 switched = True
             else:
-                showMessageLayout(f"Das hat nicht geklappt.")
+                showMessageLayout(f"Erfolg! Guthaben: {values['-CHECKOUT_SUCCESSFULL-']}")
                 refreshMessageTimer()
                 switched = True
 
@@ -246,10 +246,9 @@ while True:
     
     if event == "-CHECKOUT-":
         if shopping_cart.checkout():
-            # TODO: Do i need to typecast float() here?
             window.write_event_value('-CHECKOUT_EVENT-', shopping_cart.user.current_balance)
         else:
-            window.write_event_value('-CHECKOUT_EVENT-', False)
+            window.write_event_value('-CHECKOUT_EVENT-', None)
         reset()
         continue
 
