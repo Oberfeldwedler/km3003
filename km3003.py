@@ -246,7 +246,8 @@ while True:
     
     if event == "-CHECKOUT-":
         if shopping_cart.checkout():
-            window.write_event_value('-CHECKOUT_EVENT-', shopping_cart.user.current_balance)
+            user_balance = database_caller.getUserBalance(shopping_cart.user)
+            window.write_event_value('-CHECKOUT_EVENT-', user_balance)
         else:
             window.write_event_value('-CHECKOUT_EVENT-', None)
         reset()
@@ -273,17 +274,17 @@ while True:
              
         if isinstance(result, classes.User):
             shopping_cart.user = result
-            result.user = database_caller.calculateAndUpdateUserBalance(result)
-            window['-MEMBER-'].update(f"{result.name}       Guthaben: {result.current_balance}€")
-            
-            logger.debug(f"User '{result.name}' was detected!")
+            current_balance = database_caller.calculateAndUpdateUserBalance(result)
+            window['-MEMBER-'].update(f"{result.name}       Guthaben: {current_balance}€")
+            # TODO: make logging work with emojis
+            # logger.debug(f"User '{result.name}' was detected!")
         elif isinstance(result, classes.Product):
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
             total_checkout_sum = calculateTotalCheckoutSum(shopping_cart.products_list)
             window['-SUM-'].update(f"{total_checkout_sum}€")
-            
-            logger.debug(f"Product '{result.name}' was detected!")
+            # TODO: make logging work with emojis
+            # logger.debug(f"Product '{result.name}' was detected!")
         else:
             window.write_event_value('-BARCODE_UNKNOWN-', item)
 

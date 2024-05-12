@@ -66,7 +66,6 @@ class MySql:
 
         return self.__connectionState, connectionStateChanged
 
-       
     def getUserFromDatabase(self, barcode):
         query = ("SELECT * FROM users WHERE barcode=%s")
         try:
@@ -77,7 +76,7 @@ class MySql:
             
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
-                return classes.User(dataDict['id'], barcode, dataDict['name'], dataDict['current_balance'])
+                return classes.User(dataDict['id'], barcode, dataDict['name'])
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")
         
@@ -88,7 +87,6 @@ class MySql:
         return None
         
     def getProductFromDatabase(self, barcode):
-        
         query = ("SELECT * FROM products WHERE barcode=%s")
         try:
             
@@ -123,9 +121,6 @@ class MySql:
             logger.warning(f"Barcode {barcode} is neither user nor product!")
             return None
 
-    def beginTransaction(self):
-        self.connection.begin()
-
     def commitCurrentTransaction(self):
         try:
             self.connection.commit()
@@ -136,6 +131,13 @@ class MySql:
             logger.error(err)
             return False
 
+    def getUserBalance(self, user):
+        get_user_balance = ("SELECT current_balance FROM users WHERE id=%s")
+        self.dictCursor.execute(get_user_balance, ( user.id, ) ) 
+
+        dataDict = self.dictCursor.fetchone()
+        return dataDict['current_balance']
+ 
     def calculateUserBalance(self, user):
         
         get_purchases = ("SELECT price_then FROM purchases WHERE user_id=%s")
@@ -168,8 +170,9 @@ class MySql:
         updateBalance = ( 
             "UPDATE users SET current_balance=%s WHERE (id=%s)"
         )
+        logger.debug(f"QUERY(UPDATE, USERS): user={user.id}, current_balance={new_balance}")
         try:
-            logger.debug(f"QUERY(UPDATE, USERS): user={user.id}, current_balance={new_balance}")
+            self.connection.begin()
             self.dictCursor.execute(updateBalance, ( new_balance, user.id ) )
             return self.commitCurrentTransaction()
         except Exception as err:
@@ -177,11 +180,23 @@ class MySql:
             logger.error(err)
             return False
 
+    def insertCheckout(self, products_list, user):
+        new_balance = self.calculateAndUpdateUserBalance(user)
+        for product in products_list:
+            new_balance -= product.price
+        self.connection.begin()
+        transaction_complete = self.insertPurchasesList(products_list, user)
+        transaction_complete &= self.updateUserBalance(user, new_balance)
+        if transaction_complete:
+            user = self.calculateAndUpdateUserBalance(user)
+            return self.commitCurrentTransaction()
+        else:
+            return False
+
     def calculateAndUpdateUserBalance(self, user):
         new_balance = self.calculateUserBalance(user)
         self.updateUserBalance(user, new_balance)
-        user.current_balance = new_balance
-        return user
+        return new_balance
 
     def insertPurchasesList(self, products_list, user):
         success = True
