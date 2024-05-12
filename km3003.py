@@ -153,6 +153,12 @@ def reset():
     shopping_cart.reset()
 
 def showCheckoutLayout():
+    if database_caller.getConnectionState() != "up":
+        window.write_event_value('-DATABASE_CONNECTION_EVENT-', "down")
+        return
+    if scanner.getConnectionState() != "up":
+        window.write_event_value('-SCANNER_CONNECTION_EVENT-', "down")
+        return
     window['-MESSAGE_LAYOUT-'].update(visible=False)
     window['-CHECKOUT_LAYOUT-'].update(visible=True)
 
@@ -163,10 +169,7 @@ def showMessageLayout(message):
     window['-CHECKOUT_LAYOUT-'].update(visible=False)
     window['-MESSAGE-'].update(message)
 
-# TODO: Handle multiple message events
 # TODO: Do not store user balance locally
-
-
 
 def layout_switcher(event, values):
 

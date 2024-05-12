@@ -19,7 +19,7 @@ class MySql:
         self.database = mySqlSettingsDict["database"]
         self.connection = None  
 
-    def isConnected(self):
+    def getConnectionState(self):
         return self.__connectionState
 
     def establishConnection(self):
