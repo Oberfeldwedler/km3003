@@ -107,8 +107,6 @@ if str2bool(general_settings_dict["maximize"]):
     window.finalize()
     window.maximize()
 
-window.read(timeout=1000)
-
 inactivity_timer_id = 0
 message_timer_id = 0
 
@@ -117,10 +115,7 @@ database_caller = mysql.MySql(mysql_settings_dict)
 shopping_cart = classes.ShoppingCart(database_caller)
 
 def scannerStateChangeCallback(newScannerState):
-    if newScannerState:
-        window.write_event_value('-SCANNER_CONNECTION_RESTORED-', True)
-    else:
-        window.write_event_value('-SCANNER_CONNECTION_INTERRUPTED-', True)
+    window.write_event_value('-SCANNER_CONNECTION_EVENT-', newScannerState)
 
 if str2bool(serial_settings_dict["console_input"]):
     scanner = scanner.ConsoleScanner(serial_settings_dict)
@@ -157,19 +152,21 @@ def reset():
     window['-SUM-'].update('0€')
     shopping_cart.reset()
 
-def show_checkout_layout():
+def showCheckoutLayout():
     window['-MESSAGE_LAYOUT-'].update(visible=False)
     window['-CHECKOUT_LAYOUT-'].update(visible=True)
 
-def show_message_layout(message):
+def showMessageLayout(message):
     logger.info(f"Displaying message: '{message}'")
     
     window['-MESSAGE_LAYOUT-'].update(visible=True)
     window['-CHECKOUT_LAYOUT-'].update(visible=False)
     window['-MESSAGE-'].update(message)
 
-# TODO: Use match instead of elif
 # TODO: Handle multiple message events
+# TODO: Do not store user balance locally
+
+
 
 def layout_switcher(event, values):
 
@@ -177,36 +174,48 @@ def layout_switcher(event, values):
         logger_event.debug(f"{event}")
 
     switched = False
-    if  event == '-DATABASE_CONNECTION_INTERRUPTED-':
-        show_message_layout('Datenbank nicht erreichbar!')
-        stopMessageTimer()
-        switched = True
-    elif event == '-DATABASE_CONNECTION_RESTORED-':
-        # return to default by db reconnect
-        show_checkout_layout()
-        switched = True
-    elif event == '-CHECKOUT_SUCCESSFULL-':
-        show_message_layout(f"Erfolg! Guthaben: {values['-CHECKOUT_SUCCESSFULL-']}")
-        refreshMessageTimer()
-        switched = True
-    elif event == '-CHECKOUT_FAILED-':
-        show_message_layout(f"Das hat nicht geklappt.")
-        refreshMessageTimer()
-        switched = True
-    elif event == '-MESSAGE_TIMER-':
-        # return to default by timer
-        show_checkout_layout()
-        switched = True
-    elif event == '-BARCODE_UNKNOWN-':
-        show_message_layout(f"Unbekannter Barcode:\n{values['-BARCODE_UNKNOWN-']}")
-        refreshMessageTimer()
-    elif  event == '-SCANNER_CONNECTION_INTERRUPTED-':
-        show_message_layout('Scanner nicht verfügbar!')
-        stopMessageTimer()
-        switched = True
-    elif event == '-SCANNER_CONNECTION_RESTORED-':
-        show_checkout_layout()
-        switched = True
+
+    match event:
+        case '-DATABASE_CONNECTION_EVENT-':
+            if values['-DATABASE_CONNECTION_EVENT-'] == "up":
+                showCheckoutLayout()
+                switched = True
+            else:
+                showMessageLayout('Datenbank nicht erreichbar!')
+                stopMessageTimer()
+                switched = True
+
+        case'-SCANNER_CONNECTION_EVENT-':
+            if values['-SCANNER_CONNECTION_EVENT-'] == "up":
+                showCheckoutLayout()
+                switched = True
+            else:
+                showMessageLayout('Scanner nicht verfügbar!')
+                stopMessageTimer()
+                switched = True
+
+        case '-CHECKOUT_EVENT-':
+            if isinstance(values['-CHECKOUT_EVENT-'], float):
+                showMessageLayout(f"Erfolg! Guthaben: {values['-CHECKOUT_SUCCESSFULL-']}")
+                refreshMessageTimer()
+                switched = True
+            else:
+                showMessageLayout(f"Das hat nicht geklappt.")
+                refreshMessageTimer()
+                switched = True
+
+        case '-MESSAGE_TIMER-':
+            showCheckoutLayout()
+            switched = True
+
+        case '-BARCODE_UNKNOWN-':
+            showMessageLayout(f"Unbekannter Barcode:\n{values['-BARCODE_UNKNOWN-']}")
+            refreshMessageTimer()
+            switched = True
+
+            showCheckoutLayout()
+            switched = True
+
     return switched
 
 
@@ -223,24 +232,21 @@ while True:
     if layout_switcher(event, values):
         continue
 
-    database_active, database_state_change = database_caller.ensureDatabaseConnection()
+    database_state, database_state_change = database_caller.ensureDatabaseConnection()
 
     if database_state_change:
         logger.debug(f"database_state_change: {database_state_change}")
-        logger.debug(f"database_active: {database_active}")
+        logger.debug(f"database_active: {database_state}")
 
     if database_state_change:
-        if database_active:
-            window.write_event_value('-DATABASE_CONNECTION_RESTORED-', True)
-        elif not database_active:
-            window.write_event_value('-DATABASE_CONNECTION_INTERRUPTED-', True)
-
+            window.write_event_value('-DATABASE_CONNECTION_EVENT-', database_state)
     
     if event == "-CHECKOUT-":
         if shopping_cart.checkout():
-            window.write_event_value('-CHECKOUT_SUCCESSFULL-', shopping_cart.user.current_balance)
+            # TODO: Do i need to typecast float() here?
+            window.write_event_value('-CHECKOUT_EVENT-', shopping_cart.user.current_balance)
         else:
-            window.write_event_value('-CHECKOUT_FAILED-', None)
+            window.write_event_value('-CHECKOUT_EVENT-', False)
         reset()
         continue
 

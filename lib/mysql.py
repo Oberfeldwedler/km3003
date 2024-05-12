@@ -11,7 +11,7 @@ class MySqlDataError(Exception):
 
 class MySql:
     def __init__(self, mySqlSettingsDict):
-        self.__connectionActive = False
+        self.__connectionState = "never"
         self.hostAddress = mySqlSettingsDict["host_address"]
         self.portNumber = int(mySqlSettingsDict["port_number"])
         self.username = mySqlSettingsDict["username"]
@@ -28,13 +28,13 @@ class MySql:
                                     database=self.database, 
                                     read_timeout=1, write_timeout=1, connect_timeout=1)
             self.dictCursor = self.connection.cursor(pymysql.cursors.DictCursor)
-            self.__connectionActive = True
+            self.__connectionState = "up"
             logger.info("Connection to database established.")
             return True
         except Exception as err:
             logger.error("Cannot connect to database!")
             logger.error(err)
-            self.__connectionActive = False
+            self.__connectionState= "down"
             return False
         
     def closeConnection(self):
@@ -46,19 +46,22 @@ class MySql:
             pass
        
     def ensureDatabaseConnection(self):
-        lastConnectionState = self.__connectionActive
+        lastConnectionState = self.__connectionState
         if self.connection == None:
             self.establishConnection()
         else:
             try:
                 self.connection.ping(reconnect=True)
-                self.__connectionActive = True
+                self.__connectionState = "up"
             except:
-                self.__connectionActive = False
+                self.__connectionState = "down"
 
-        connectionStateChanged = self.__connectionActive ^ lastConnectionState #XOR
+        if not self.__connectionState == lastConnectionState:
+            connectionStateChanged = True
+        else:
+            connectionStateChanged = False
 
-        return self.__connectionActive, connectionStateChanged
+        return self.__connectionState, connectionStateChanged
 
        
     def getUserFromDatabase(self, barcode):

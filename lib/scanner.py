@@ -15,9 +15,6 @@ class Scanner():
     def getBarcode(self) -> str:
         raise NotImplementedError()
     
-    def isConnected(self) -> bool:
-        pass
-
     def close(self) -> None:
         pass
 
@@ -49,9 +46,6 @@ class ConsoleScanner(Scanner):
         else:
             item = None
         return item
-    
-    def isConnected(self) -> bool:
-        return True
 
     def close(self) -> None:
         self.isStopRequested = False
@@ -62,8 +56,7 @@ class SerialScanner(Scanner):
         super().__init__(serialSettingsDict)
         self.queue = queue.Queue()
         self.__scannerStateChangeCallback = scannerStateChangeCallback
-        self.__connectionActive = False
-        self.__scannerStateChangeCallback(self.__connectionActive)
+        self.__connectionState = "never"
 
         self.thread = threading.Thread(target=self.__readFromScanner, daemon=True)
         self.isStopRequested = False
@@ -82,24 +75,26 @@ class SerialScanner(Scanner):
         try:
             self.ser = self.__constructSerialConnection()
             self.ser.open()
-            self.__connectionActive = True
-            self.__scannerStateChangeCallback(self.__connectionActive)
+            self.__connectionState = "up"
+            self.__scannerStateChangeCallback(self.__connectionState)
         except:
+            self.__connectionState = "down"
+            self.__scannerStateChangeCallback(self.__connectionState)
             logging.debug("Connection to serial device could not be opened! Ignoring!")
             time.sleep(1)
             pass
  
     def __readFromScanner(self):
         while not self.isStopRequested:
-            if self.__connectionActive:
+            if self.__connectionState == "up":
                 try:
                     line = self.ser.readline().decode()
                     self.queue.put(line, block=True, timeout=None)
                 except Exception as e:
                     logger.error(f"Cannot read from serial device!")
                     logger.error(e)
-                    self.__connectionActive = False
-                    self.__scannerStateChangeCallback(self.__connectionActive)
+                    self.__connectionState = "down"
+                    self.__scannerStateChangeCallback(self.__connectionState)
                     pass
             else:
                 self.__openSerialConnection()
@@ -111,9 +106,6 @@ class SerialScanner(Scanner):
         else:
             item = None
         return item
-    
-    def isConnected(self) -> bool:
-        return self.__connectionActive
     
     def close(self):
         self.isStopRequested = True
