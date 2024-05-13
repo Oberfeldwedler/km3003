@@ -10,7 +10,7 @@
 
 2. install python libraries
     ```
-    python -m pip install pysimplegui pyserial pymysql
+    python -m pip install pysimplegui pyserial pymysql cryptography
     ```
 
 3. setup km3003.conf
