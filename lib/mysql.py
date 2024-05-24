@@ -79,11 +79,10 @@ class MySql:
                 return classes.User(dataDict['id'], barcode, dataDict['name'])
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")
-        
+            self.connection.commit()
         except MySqlDataError as err:
             logger.error("Error during SELECT from table USER")
             logger.error(err)
-            
         return None
         
     def getProductFromDatabase(self, barcode):
@@ -99,7 +98,7 @@ class MySql:
                 return classes.Product(dataDict['id'], barcode, dataDict['name'], dataDict['sell_price'])
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique product! ({rowCount} results)")
-                
+            self.connection.commit()
         except MySqlDataError as err:
             logger.error("Error during SELECT from table USER")
             logger.error(err)
@@ -133,13 +132,17 @@ class MySql:
 
     def getUserBalance(self, user):
         get_user_balance = ("SELECT current_balance FROM users WHERE id=%s")
-        self.dictCursor.execute(get_user_balance, ( user.id, ) ) 
-
-        dataDict = self.dictCursor.fetchone()
-        return dataDict['current_balance']
+        try:
+            self.dictCursor.execute(get_user_balance, ( user.id, ) ) 
+            dataDict = self.dictCursor.fetchone()
+            self.connection.commit()
+            return dataDict['current_balance']
+        except Exception as err:
+            logger.error("Failed to get user balance.")
+            logger.error(err)
+            return None  
  
     def calculateUserBalance(self, user):
-        
         get_purchases = ("SELECT price_then FROM purchases WHERE user_id=%s")
         get_deposits = ("SELECT amount FROM deposits WHERE user_id=%s")
         
@@ -157,6 +160,7 @@ class MySql:
             self.dictCursor.execute(get_deposits, ( user.id, ) )
             for deposit in self.dictCursor:
                 sum_of_deposits += deposit["amount"]
+            self.connection.commit()
                 
         except Exception as err:
             logger.error("Failed to calculate current user balance.")
