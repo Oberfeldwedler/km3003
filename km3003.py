@@ -58,8 +58,16 @@ body = [
     [ sum_row ]
 ]
 
-footer = [
-    [ sg.Button( 'Zurücksetzen', size=20, key='-RESET-'), sg.Button('Buchen', expand_x=True , key='-CHECKOUT-') ]
+footer = [[ 
+    sg.Button('Zurücksetzen', 
+              size=(20,2), 
+              font=(general_settings_dict["font"], int(general_settings_dict["font_size"]) * 2),
+              key='-RESET-'), 
+    sg.Button('Buchen', 
+              expand_x=True, 
+              expand_y=True, 
+              font=(general_settings_dict["font"], int(general_settings_dict["font_size"]) * 2),
+              key='-CHECKOUT-') ]
 ]
 
 message_layout = [
