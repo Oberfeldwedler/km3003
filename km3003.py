@@ -216,9 +216,6 @@ def layout_switcher(event, values):
             refreshMessageTimer()
             switched = True
 
-            showCheckoutLayout()
-            switched = True
-
     return switched
 
 
