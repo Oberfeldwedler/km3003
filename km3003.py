@@ -1,3 +1,4 @@
+import re
 import configparser
 import logging.handlers
 import PySimpleGUI as sg
@@ -17,6 +18,13 @@ serial_settings_dict = dict(config['serial'])
 inactivity_timeout = int(general_settings_dict['screen_timeout_ms'])
 message_timeout = int(general_settings_dict['message_timeout_ms'])
 
+emoji_pattern = re.compile("["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                           "]+", flags=re.UNICODE)
+
 def str2bool(value : str) -> bool:
     return value.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'ja', 'jawoll', 'definitiv']
 
@@ -26,7 +34,7 @@ if not os.path.exists("logs/"):
 formatter = logging.Formatter("[%(levelname)-7s] [%(asctime)s] %(name)10s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logging.basicConfig()
 logging.getLogger().setLevel(general_settings_dict.get("logging", "INFO").upper())
-log_handler = logging.handlers.RotatingFileHandler("logs/km3003.log", maxBytes=(1048576*5), backupCount=7)
+log_handler = logging.handlers.RotatingFileHandler("logs/km3003.log", maxBytes=(1048576*5), backupCount=7, encoding='utf-8')
 logging.getLogger().addHandler(log_handler)
 for handler in logging.getLogger().handlers:
     handler.setFormatter(formatter)
@@ -281,15 +289,13 @@ while True:
             shopping_cart.user = result
             current_balance = database_caller.calculateAndUpdateUserBalance(result)
             window['-MEMBER-'].update(f"{result.name}       Guthaben: {current_balance}€")
-            # TODO: make logging work with emojis
-            # logger.debug(f"User '{result.name}' was detected!")
+            logger.debug(f"User '{result.name}' was detected!")
         elif isinstance(result, classes.Product):
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
             total_checkout_sum = calculateTotalCheckoutSum(shopping_cart.products_list)
             window['-SUM-'].update(f"{total_checkout_sum}€")
-            # TODO: make logging work with emojis
-            # logger.debug(f"Product '{result.name}' was detected!")
+            logger.debug(f"Product '{result.name}' was detected!")
         else:
             window.write_event_value('-BARCODE_UNKNOWN-', item)
 
