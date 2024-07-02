@@ -69,8 +69,8 @@ class MySql:
     def getUserFromDatabase(self, barcode):
         query = ("SELECT * FROM users WHERE barcode=%s")
         try:
-            
-            logger.debug(f"QUERY(SELECT, USER): bardcode={barcode}")
+
+            logger.debug(self.dictCursor.mogrify(query, ( barcode, ) ))
             self.dictCursor.execute(query, ( barcode, ) )
             rowCount = self.dictCursor.rowcount
             
@@ -81,15 +81,16 @@ class MySql:
                 logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")
             self.connection.commit()
         except MySqlDataError as err:
-            logger.error("Error during SELECT from table USER")
+            self.connection.rollback()
+            logger.error("Error during SELECT from table USER:")
             logger.error(err)
         return None
         
     def getProductFromDatabase(self, barcode):
         query = ("SELECT * FROM products WHERE barcode=%s")
         try:
-            
-            logger.debug(f"QUERY(SELECT, PRODUCT): bardcode={barcode}")
+
+            logger.debug(self.dictCursor.mogrify(query, ( barcode, ) ))
             self.dictCursor.execute(query, ( barcode, ) )
             rowCount = self.dictCursor.rowcount
             
@@ -120,16 +121,6 @@ class MySql:
             logger.warning(f"Barcode {barcode} is neither user nor product!")
             return None
 
-    def commitCurrentTransaction(self):
-        try:
-            self.connection.commit()
-            logger.debug("Commiting query to database.")
-            return True
-        except Exception as err:
-            logger.error("Failed to commit transaction to database!")
-            logger.error(err)
-            return False
-
     def getUserBalance(self, user):
         get_user_balance = ("SELECT current_balance FROM users WHERE id=%s")
         try:
@@ -138,7 +129,8 @@ class MySql:
             self.connection.commit()
             return dataDict['current_balance']
         except Exception as err:
-            logger.error("Failed to get user balance.")
+            self.connection.rollback()
+            logger.error("Failed to get user balance:")
             logger.error(err)
             return None  
  
@@ -150,20 +142,23 @@ class MySql:
         sum_of_deposits = 0
         
         try:
-            
-            logger.debug(f"QUERY(SELECT, PURCHASES): user_id={user.id}")
+
+            logger.debug(self.dictCursor.mogrify(get_purchases, ( user.id, )))
             self.dictCursor.execute(get_purchases, ( user.id, ) ) 
+
             for purchase in self.dictCursor:
                 sum_of_purchases += purchase["price_then"]
                 
-            logger.debug(f"QUERY(SELECT, DEPOSITS): user_id={user.id}")
+            logger.debug(self.dictCursor.mogrify(get_deposits, ( user.id, )))
             self.dictCursor.execute(get_deposits, ( user.id, ) )
+
             for deposit in self.dictCursor:
                 sum_of_deposits += deposit["amount"]
             self.connection.commit()
                 
         except Exception as err:
-            logger.error("Failed to calculate current user balance.")
+            self.connection.rollback()
+            logger.error("Failed to calculate current user balance:")
             logger.error(err)
             return None
         
@@ -174,12 +169,14 @@ class MySql:
         updateBalance = ( 
             "UPDATE users SET current_balance=%s WHERE (id=%s)"
         )
-        logger.debug(f"QUERY(UPDATE, USERS): user={user.id}, current_balance={new_balance}")
+        logger.debug(self.dictCursor.mogrify(updateBalance, ( new_balance, user.id ) ))
         try:
             self.connection.begin()
             self.dictCursor.execute(updateBalance, ( new_balance, user.id ) )
-            return self.commitCurrentTransaction()
+            self.connection.commit()
+            return True
         except Exception as err:
+            self.connection.rollback()
             logger.error("Failed to update user balance in database:")
             logger.error(err)
             return False
@@ -193,8 +190,11 @@ class MySql:
         transaction_complete &= self.updateUserBalance(user, new_balance)
         if transaction_complete:
             user = self.calculateAndUpdateUserBalance(user)
-            return self.commitCurrentTransaction()
+            self.connection.commit()
+            return True
         else:
+            self.connection.rollback()
+            logger.error("Failed to insert checkout.")
             return False
 
     def calculateAndUpdateUserBalance(self, user):
@@ -213,10 +213,11 @@ class MySql:
             "INSERT INTO purchases (product_id, user_id, price_then) VALUES (%s, %s, %s)"
         )
         try:
-            logger.debug(f"QUERY(INSERT, PURCHASES): product_id={product.id}, user_id={user.id}")
+            logger.debug(self.dictCursor.mogrify(insertPurchase, ( product.id, user.id, product.price ) ))
             self.dictCursor.execute(insertPurchase, ( product.id, user.id, product.price ) )
             return True
         except Exception as err:
+            self.connection.rollback()
             logger.error("Failed to insert purchase into database:")
             logger.error(err)
             return False
