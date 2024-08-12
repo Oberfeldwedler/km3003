@@ -22,6 +22,57 @@
  
 4. TODO: configure scheduled reboot and updates
 
+# Raspbian standalone
+
+    Notes: For mysql in a docker container, you will need 64bit Raspberry Pi OS
+
+1. Setup database with docker
+
+mysql docker-compose.yml
+```yaml
+version: '3'
+
+    services:
+    db:
+        image: mysql:8.0
+        command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+        restart: unless-stopped
+        ports:
+        - 3306:3306
+        volumes:
+        - ./mysql:/var/lib/mysql
+        env_file:
+        - .env
+```
+### .env
+```ini
+MYSQL_ROOT_PASSWORD=
+MYSQL_DATABASE=
+MYSQL_USER=
+MYSQL_PASSWORD=
+```
+
+Copy create statements of real km3003 db and eexcute via mysql workbench for all four databases
+Copy users and product rows via mysql workbench
+
+2. install python modules
+
+```
+ pip3 install pyserial --break-system-packages pymysql --break-system-packages pysimplegui
+```
+
+3. clone km3003 repo
+
+4. `cp km3003_sample.conf km3003.conf`
+
+5. setup resolution to `800x480` and configure rest of config file
+
+    scanner is probably `/dev/ttyACM0`
+
+6. first start of program... use geanny. Because lazy
+7. left button in pysimplegui activation to enter license key
+8. start again
+
 ## How to create .exe
 
 ```
