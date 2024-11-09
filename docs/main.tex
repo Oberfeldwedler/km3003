@@ -1,0 +1,103 @@
+
+\documentclass[12pt]{article}
+
+\usepackage{caption}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{acronym}
+
+\author{Samuel Brunner}
+\date{\today}
+\title{Technische Dokumentation Kühlschrankmanager KM3003}
+
+\begin{document}
+
+\maketitle
+
+\newpage
+\tableofcontents
+
+\newpage
+
+\begin{abstract}
+Das Problem, welches der Kühlschrankmanager 3003 löst, lässt sich mit dem Stichwort Strichliste beschreiben.
+Am Kühlschrank hing früher eine Liste mit den verfügbaren Getränken und den aktuellen Mitgliedern unseres Vereines. 
+
+Für jedes erworbene Getränk wird ein Strich auf der Liste in der Zeile des jeweiligen Mitglieds und in der Spalte des erworbenen Getränks eingetragen.
+In sinnvollen Zeitintervallen, werden die Striche auf der Liste gezählt und für jedes Mitglied ein Saldo für die Abrechnung gebildet. Danach wird die Liste neu ausgedruckt und wieder mit Strichen gefüllt.
+
+Der KM3003 digitalisiert diesen Prozess und ermöglicht die Identifizierung von Mitgliedern mit Barcodes, die auf den Studentenausweisen aufgedruckt sind, die Auswahl der Produkte über ohnehin aufgedruckte EAN-Codes und das Führen von negativen und positiven Salden.
+
+Zusammengefasst lässt sich der Kühlschrankmanager als ein via Tochscreen bedienbares Point-of-Sale Gerät mit Self-Checkout und Barcode-Scanner beschreiben.
+\end{abstract}
+
+\section{Plattform und Systematchitektur}
+Als Basis wurde ein Microsoft Surface 3 mit dem zugehörigen Dock verwendet.
+Das Surface 3 ist ein Tablet-Computer mit einem zuverlässigen kapazitativen Multi-Touchscreen und solider Treiberunterstützung unter Windows.
+Als Betriebssystem wird ein unverändertes Windows 11 Home verwendet, um eine gut getestete und stabile Basis zu bieten. Auch die Verfügbarkeit von Updates in der Zukunft wird so maximiert.
+
+Weiterhin bieten die meisten Microsoft Surface Geräte einen Kioskmodus der spezielle Lösungen für Geräte mit festem und orstunveränderlichem Verwendungszweck bietet.
+So optimiert der Kioskmodus das Ladeverhalten für Geräte, die permanent mit Strom versorgt werden, um die Akkulebensdauer zu verlängern.
+Weiterhin kann der Zugang zu Anwendungen, die nicht dem gedachten Verwendungszweck entsprechen, beschränkt werden.
+
+Zum scannen wird ein Freihandscanner (Modell DS9208) der Firma Zebra verwendet. Dieser wird per USB angeschlossen, meldet sich aber unter Windows, als ein über serielle Schnittstelle angebundenes Gerät.
+Dies erfolgt unter Verwendung des \ac{USB CDC driver}.
+
+Das Surface dient als reines Point-of-Sale Gerät und speichert keinerlei Daten. Hierfür wird eine externe MySQL-Datenbank verwendet, welche Nutzer, Produkte, Ein- bzw. Auszahlungen und Einkäufe enthält.
+
+\section{Software}
+Als Implementierungssprache wurde objektorientiertes Python3 verwendet. Python Anwendungen laufen auf nahezu allen Platformen und sind schnell zu implementieren. Python selbst is weit verbreitet und einfach zu lernen, was Wartungsarbeiten oder die Erweiterung mit neuen Features für zukünftige Mitglieder erleichtert. Auch die Verfügbarkeit von bestehenden Bibliotheken für \ac{GUI}, Datenbankanbindung und serielle Schnittstellen ist optimal.
+
+\subsection{Verwendete Bibliotheken, Frameworks und Tools}
+
+
+pysqimplegui
+mysql connector
+
+
+\subsection{Datenbankstruktur}
+TODO an Normalformen angelehnt
+atomare Felder
+
+\subsection{Testing}
+Unit tests schreinben mit pyunit test Framework
+
+
+
+
+
+\section{Deployment}
+- deployment:
+    surface, ansbile for km3003 standalone
+    cyclical restart windows task scheduler
+    mysql db
+
+\section{Herausforderung bei der Implementierung}
+    - wiedreraufbau von Verbindunsabbrüchen (Datenbank und Scanner) zur Laufzeit
+
+\section{Ausblick und Verbesserungsvorschläge}
+    UI Framework is kacke
+    Sounds
+
+\section{Inline documetation anhängen}
+\appendix
+
+\begin{acronym}[OTH R]
+    \acro{USB CDC driver}{USB communications device class driver}
+    \acro{GUI}{graphical user interface}
+\end{acronym}
+
+\clearpage
+
+\listoffigures
+
+\clearpage
+
+\begin{thebibliography}{99}
+\bibitem{bl}Microsoft Kiosk Mode? \url{https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/customize/kiosk-mode}
+\bibitem{bl}What is infrastructure as code (IaC)? \url{https://learn.microsoft.com/en-us/devops/deliver/what-is-infrastructure-as-code}
+\bibitem{bl}INSYS MICROELECTRONICS \url{https://www.insys-tec.de/en/}
+\end{thebibliography}
+
+\clearpage
+\end{document}
