@@ -19,20 +19,19 @@
 
 \newpage
 
-\begin{abstract}
-Das Problem, welches der Kühlschrankmanager 3003 löst, lässt sich mit dem Stichwort Strichliste beschreiben.
-Am Kühlschrank hing früher eine Liste mit den verfügbaren Getränken und den aktuellen Mitgliedern unseres Vereines. 
+\section{Einleitung}
+Der Kühlschrankmanager im Vertretungszimmer der Fachschaft ersetzt die Strichliste, welche früher am Kühlschrank hing, und die Getränkekäufe der Vereinsmitglieder erfasste.
 
-Für jedes erworbene Getränk wird ein Strich auf der Liste in der Zeile des jeweiligen Mitglieds und in der Spalte des erworbenen Getränks eingetragen.
-In sinnvollen Zeitintervallen, werden die Striche auf der Liste gezählt und für jedes Mitglied ein Saldo für die Abrechnung gebildet. Danach wird die Liste neu ausgedruckt und wieder mit Strichen gefüllt.
+Früher wurden auf der Liste für jedes erworbene Getränk Striche in der Zeile des jeweiligen Mitglieds und in der Spalte des Getränks eingetragen. Regelmäßig zählte man die Striche, ermittelte so die Saldos der Mitglieder und erstellte eine neue Liste.
 
-Der KM3003 digitalisiert diesen Prozess und ermöglicht die Identifizierung von Mitgliedern mit Barcodes, die auf den Studentenausweisen aufgedruckt sind, die Auswahl der Produkte über ohnehin aufgedruckte EAN-Codes und das Führen von negativen und positiven Salden.
+Der KM3003 ist die Weiterentwicklung der bisherigen Kühlschrankmanager (KM3000 bis KM3002). Der KM3002 basierte auf einem Raspberry Pi mit Touchscreen und NFC-Reader in einem 3D-gedruckten Gehäuse. Mitglieder wurden per Studentenausweis mit NFC identifiziert, und Käufe über den Touchscreen ausgewählt. Die Daten wurden in einer MySQL-Datenbank gespeichert, die jedoch nur negative Salden ermöglichte und so exakte Abrechnungen erzwang. Zudem gab es Verbesserungsbedarf in Codequalität, Zuverlässigkeit und Geschwindigkeit.
 
-Zusammengefasst lässt sich der Kühlschrankmanager als ein via Tochscreen bedienbares Point-of-Sale Gerät mit Self-Checkout und Barcode-Scanner beschreiben.
-\end{abstract}
+Der KM3003 erlaubt nun die Identifizierung von Mitgliedern und Produkten über das Scannen von Barcodes. Mitglieder werden über die Barcodes auf den Studentenausweisen erkannt, Produkte über EAN-Codes. Außerdem erlaubt er nun auch positive Saldos, sodass Mitglieder flexibel Guthaben einzahlen können.
+
+Zusammengefasst ist der KM3003 ein Self-Checkout Point-of-Sale-Gerät mit Touchscreen und Barcode-Scanner.
 
 \section{Plattform und Systematchitektur}
-Als Basis wurde ein Microsoft Surface 3 mit dem zugehörigen Dock verwendet.
+Als Basis für den Kühlschrankmanager wurde ein Microsoft Surface 3 mit dem zugehörigen Dock verwendet.
 Das Surface 3 ist ein Tablet-Computer mit einem zuverlässigen kapazitativen Multi-Touchscreen und solider Treiberunterstützung unter Windows.
 Als Betriebssystem wird ein unverändertes Windows 11 Home verwendet, um eine gut getestete und stabile Basis zu bieten. Auch die Verfügbarkeit von Updates in der Zukunft wird so maximiert.
 
@@ -41,17 +40,63 @@ So optimiert der Kioskmodus das Ladeverhalten für Geräte, die permanent mit St
 Weiterhin kann der Zugang zu Anwendungen, die nicht dem gedachten Verwendungszweck entsprechen, beschränkt werden.
 
 Zum scannen wird ein Freihandscanner (Modell DS9208) der Firma Zebra verwendet. Dieser wird per USB angeschlossen, meldet sich aber unter Windows, als ein über serielle Schnittstelle angebundenes Gerät.
-Dies erfolgt unter Verwendung des \ac{USB CDC driver}.
+Dies erfolgt unter Verwendung des \ac{USB CDC} Treibers.
 
-Das Surface dient als reines Point-of-Sale Gerät und speichert keinerlei Daten. Hierfür wird eine externe MySQL-Datenbank verwendet, welche Nutzer, Produkte, Ein- bzw. Auszahlungen und Einkäufe enthält.
+Das Surface speichert keinerlei Daten. Hierfür wird eine externe MySQL-Datenbank verwendet, welche Nutzer, Produkte, Ein- bzw. Auszahlungen und Einkäufe enthält.
 
 \section{Software}
-Als Implementierungssprache wurde objektorientiertes Python3 verwendet. Python Anwendungen laufen auf nahezu allen Platformen und sind schnell zu implementieren. Python selbst is weit verbreitet und einfach zu lernen, was Wartungsarbeiten oder die Erweiterung mit neuen Features für zukünftige Mitglieder erleichtert. Auch die Verfügbarkeit von bestehenden Bibliotheken für \ac{GUI}, Datenbankanbindung und serielle Schnittstellen ist optimal.
+Als Implementierungssprache wurde objektorientiertes Python3 verwendet. Python ist weit verbreitet und einfach zu lernen, was Wartungsarbeiten oder die Erweiterung mit neuen Features für zukünftige Mitglieder erleichtert. 
 
-\subsection{Verwendete Bibliotheken, Frameworks und Tools}
+Weiterhin können Python Anwendungen auf Linux und Windows Platformen ausgeführt werden, sodass bei Bedarf auch das bisher verwendete Raspberry Pi mit externem Touchscreen weiter verwendet werden könnte. 
+
+Auch die Verfügbarkeit von bestehenden Bibliotheken für \ac{GUI}, Datenbankanbindung und serielle Schnittstellen ist optimal.
+
+\subsection{Verwendete Bibliotheken und Frameworks}
 
 
-pysqimplegui
+
+- Lizenzmodell
+    PySimpleGUI; PySimpleGUI license
+        * "Hobbyist Developer" means any individual who uses PySimpleGUI for
+        development purposes solely for either or both of the following: (1) personal 
+        (e.g., not on behalf of an employer or other third party), Non-Commercial
+        purposes; or (2) Non-Commercial educational or learning purposes (1 and 2
+        together, the "Permitted No-cost Purposes").
+        Lizenz ist aktuell so und erlaubt uns die Nutzung, weil wir keinen Gewinn machen. Ziel der Kasse ist 0. Bleibt das so?
+        Die Andere Option wäre \$99 zu zahlen. (Jährlich um auch die zukünftigen Releases zu nutzen). Also eigtl \$99 pro Jahr
+    tkinter: Tcl/Tk license
+        * The authors hereby grant permission to use, copy, modify, distribute, and license this software and its documentation for any purpose, provided that existing copyright notices are retained in all copies and that this notice is included verbatim in any distributions. 
+        Hat sich laut wayback machine auch seit 2010 nicht geändert
+
+- Dokumentation:
+    PySimpleGUI: 
+        extrem auf den Hobbyist ausgelegt, sehr beispiellastig
+        meiner meinung nach furchtbar zu lesen
+        hätte lieber eine ordentliche API spezifikation, als 10000 beispielprogramme
+    tkinter: standard doku
+        weniger an den Hobbyisten gerichtet; 
+        für den geübten aber einfacher das zu finden was man sucht (Werkzeuge, wie configure() )
+
+- Architektur und Objekte:
+    tkinter: 
+        everything is a widget
+        widgets are organized in a hierarchy
+        widgets have configuration options
+        the placement options is managed by a geometry manager 
+        the GUI reacts to user inputs and changes from my program and refreshes the interface
+
+    pysimplegui:
+        everything
+
+
+
+- Lernkurve:
+
+
+
+
+
+
 mysql connector
 
 
@@ -83,7 +128,7 @@ Unit tests schreinben mit pyunit test Framework
 \appendix
 
 \begin{acronym}[OTH R]
-    \acro{USB CDC driver}{USB communications device class driver}
+    \acro{USB CDC}{USB communications device class}
     \acro{GUI}{graphical user interface}
 \end{acronym}
 
@@ -94,9 +139,9 @@ Unit tests schreinben mit pyunit test Framework
 \clearpage
 
 \begin{thebibliography}{99}
-\bibitem{bl}Microsoft Kiosk Mode? \url{https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/customize/kiosk-mode}
+\bibitem{bl}Microsoft Kiosk Mode \url{https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/customize/kiosk-mode}
 \bibitem{bl}What is infrastructure as code (IaC)? \url{https://learn.microsoft.com/en-us/devops/deliver/what-is-infrastructure-as-code}
-\bibitem{bl}INSYS MICROELECTRONICS \url{https://www.insys-tec.de/en/}
+\bibitem{bl}tkinter — Python interface to Tcl/Tk \url{https://docs.python.org/3/library/tkinter.html}
 \end{thebibliography}
 
 \clearpage
