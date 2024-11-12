@@ -53,47 +53,56 @@ Auch die Verfügbarkeit von bestehenden Bibliotheken für \ac{GUI}, Datenbankanb
 
 \subsection{Verwendete Bibliotheken und Frameworks}
 
+% - Lizenzmodell
+%     PySimpleGUI; PySimpleGUI license
+%         * "Hobbyist Developer" means any individual who uses PySimpleGUI for
+%         development purposes solely for either or both of the following: (1) personal 
+%         (e.g., not on behalf of an employer or other third party), Non-Commercial
+%         purposes; or (2) Non-Commercial educational or learning purposes (1 and 2
+%         together, the "Permitted No-cost Purposes").
+%         Lizenz ist aktuell so und erlaubt uns die Nutzung, weil wir keinen Gewinn machen. Ziel der Kasse ist 0. Bleibt das so?
+%         Die Andere Option wäre \$99 zu zahlen. (Jährlich um auch die zukünftigen Releases zu nutzen). Also eigtl \$99 pro Jahr
+%     tkinter: Python Software Foundation License
+%         * The authors hereby grant permission to use, copy, modify, distribute, and license this software and its documentation for any purpose, provided that existing copyright notices are retained in all copies and that this notice is included verbatim in any distributions. 
+%         Python Software Foundation License aggreement: Alows unrestricted distribution 
+%      qt: GPL license auch ok für uns... muss dann nur auch als GPL lizensiert werden
+% - Dokumentation:
+%     PySimpleGUI: 
+%         extrem auf den Hobbyist ausgelegt, sehr beispiellastig
+%         meiner meinung nach furchtbar zu lesen
+%         hätte lieber eine ordentliche API spezifikation, als 10000 beispielprogramme
+%     tkinter: standard doku
+%         weniger an den Hobbyisten gerichtet; 
+%         für den geübten aber einfacher das zu finden was man sucht (Werkzeuge, wie configure() )
+%     qt: schlechte Doku und 
+
+% - Architektur und Objekte:
+%     tkinter: 
+%         everything is a widget
+%         widgets are organized in a hierarchy
+%         widgets have configuration options
+%         the placement options is managed by a geometry manager 
+%         the GUI reacts to user inputs and changes from my program and refreshes the interface
+%     pysimplegui:
+%         everything is an element, which is also just a pyhton object
+%         layout is done by filling rows with elements and pushing them vertically to where you want them
+%         some elements can contain other elements, which are called container elements
+%         elements have configuration options
+%     qt:
+%         offers far to much customizability for out purposes
 
 
-- Lizenzmodell
-    PySimpleGUI; PySimpleGUI license
-        * "Hobbyist Developer" means any individual who uses PySimpleGUI for
-        development purposes solely for either or both of the following: (1) personal 
-        (e.g., not on behalf of an employer or other third party), Non-Commercial
-        purposes; or (2) Non-Commercial educational or learning purposes (1 and 2
-        together, the "Permitted No-cost Purposes").
-        Lizenz ist aktuell so und erlaubt uns die Nutzung, weil wir keinen Gewinn machen. Ziel der Kasse ist 0. Bleibt das so?
-        Die Andere Option wäre \$99 zu zahlen. (Jährlich um auch die zukünftigen Releases zu nutzen). Also eigtl \$99 pro Jahr
-    tkinter: Tcl/Tk license
-        * The authors hereby grant permission to use, copy, modify, distribute, and license this software and its documentation for any purpose, provided that existing copyright notices are retained in all copies and that this notice is included verbatim in any distributions. 
-        Hat sich laut wayback machine auch seit 2010 nicht geändert
+% conclusion: If I could do it again, I would use tkinter, because of the license that im sure of that it wont change in the future, the better documentation (Pysimplegui docs is annoying af) and the more professional appearance
 
-- Dokumentation:
-    PySimpleGUI: 
-        extrem auf den Hobbyist ausgelegt, sehr beispiellastig
-        meiner meinung nach furchtbar zu lesen
-        hätte lieber eine ordentliche API spezifikation, als 10000 beispielprogramme
-    tkinter: standard doku
-        weniger an den Hobbyisten gerichtet; 
-        für den geübten aber einfacher das zu finden was man sucht (Werkzeuge, wie configure() )
+PySimpleGUI und Tkinter unterscheiden sich erheblich in Bezug auf Lizenzierung, Dokumentation und Architektur, was ihre Eignung für unterschiedliche Projekte beeinflusst.
 
-- Architektur und Objekte:
-    tkinter: 
-        everything is a widget
-        widgets are organized in a hierarchy
-        widgets have configuration options
-        the placement options is managed by a geometry manager 
-        the GUI reacts to user inputs and changes from my program and refreshes the interface
+Im Hinblick auf das Lizenzmodell erlaubt PySimpleGUI die kostenlose Nutzung primär für Hobby- und Bildungszwecke, sofern keine kommerzielle Absicht besteht. Für kommerzielle Nutzung oder kontinuierliche Updates fällt jedoch eine jährliche Gebühr von 99 US-Dollar an. Dieses Lizenzmodell kann einschränkend sein, falls sich ein Projekt in eine kommerzielle Richtung entwickelt, da nicht garantiert ist, dass die Lizenzbedingungen stabil bleiben. Tkinter hingegen ist unter der Tcl/Tk-Lizenz verfügbar, die seit 2010 unverändert ist und uneingeschränkte Rechte zur Modifikation, Verbreitung und kommerziellen Nutzung bietet. Dies macht Tkinter zu einer verlässlicheren Wahl für langfristige Projekte, bei denen Stabilität der Lizenzierung entscheidend ist.
 
-    pysimplegui:
-        everything
+Ein weiterer Unterschied besteht in der Dokumentation. Die Dokumentation von PySimpleGUI ist stark beispielorientiert und richtet sich primär an Hobbyentwickler. Für erfahrene Entwickler, die eher eine formale API-Spezifikation als viele Beispiele bevorzugen, kann dies weniger hilfreich sein. Tkinter hingegen bietet eine professionellere Dokumentation mit detaillierten API-Spezifikationen, was die gezielte Nutzung einzelner Funktionen wie configure() erleichtert. Die Dokumentation von Tkinter ist daher besonders für Entwickler mit mehr Erfahrung besser geeignet.
 
+Auch in der Architektur zeigen sich deutliche Unterschiede. Bei Tkinter wird jede Komponente als "Widget" innerhalb einer Hierarchie betrachtet und kann umfassend konfiguriert werden. Die Anordnung der Widgets wird von Geometriemanagern verwaltet, die eine feine Steuerung des Layouts und der Reaktionsfähigkeit ermöglichen. Diese ereignisgesteuerte Architektur erlaubt es der GUI, dynamisch auf Nutzereingaben zu reagieren, was Tkinter für Projekte mit komplexen, flexiblen Benutzeroberflächen besonders geeignet macht. PySimpleGUI hingegen arbeitet mit sogenannten "Elementen", die in Zeilen angeordnet und vertikal gestapelt werden. Zwar gibt es Container-Elemente zur Gruppierung, doch ist diese Layout-Struktur im Vergleich weniger flexibel und kann bei komplexen Designanforderungen einschränkend wirken.
 
-
-- Lernkurve:
-
-
-
+Abschließend lässt sich sagen, dass Tkinter die bevorzugte Wahl für Projekte ist, die auf professionelle Dokumentation, stabile Lizenzierung und eine skalierbare Architektur angewiesen sind. Dank seiner stabilen Lizenz, der strukturierten Dokumentation und der vielseitigen Architektur eignet sich Tkinter besonders für langfristige und potenziell kommerzielle Projekte.
 
 
 
@@ -142,6 +151,11 @@ Unit tests schreinben mit pyunit test Framework
 \bibitem{bl}Microsoft Kiosk Mode \url{https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/customize/kiosk-mode}
 \bibitem{bl}What is infrastructure as code (IaC)? \url{https://learn.microsoft.com/en-us/devops/deliver/what-is-infrastructure-as-code}
 \bibitem{bl}tkinter — Python interface to Tcl/Tk \url{https://docs.python.org/3/library/tkinter.html}
+\bibitem{bl}PyQt vs. Tkinter — Which Should You Choose for Your Next GUI Project? \url{https://www.pythonguis.com/faq/pyqt-vs-tkinter/}
+\bibitem{bl}PyQT6 Reference Guide \url{https://www.riverbankcomputing.com/static/Docs/PyQt6/index.html}
+
+
+
 \end{thebibliography}
 
 \clearpage
