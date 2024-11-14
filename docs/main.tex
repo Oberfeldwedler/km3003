@@ -53,6 +53,8 @@ Auch die Verfügbarkeit von bestehenden Bibliotheken für \ac{GUI}, Datenbankanb
 
 \subsection{Verwendete Bibliotheken und Frameworks}
 
+\subsubsection{Graphical User Interface}
+
 Bei der Auswahl eines GUI-Frameworks für Python-Projekte bieten PyQt, Tkinter und PySimpleGUI unterschiedliche Stärken und Einschränkungen in Bezug auf Lizenzmodell, Dokumentation und Architektur. 
 
 Tkinter und PyQT bieten Python Schnittstellen zu den externen GUI toolkits Tk und Qt. PySimpleGUI hingegen baut auf solchen toolkits auf und legt eine weitere Abstraktionsebene darüber um das Erstellen von GUIs über diese Toolkits hinweg zu vereinheitlichen und weiter zu vereinfachen.
@@ -63,11 +65,10 @@ Die Dokumentation der drei Frameworks variiert stark in der Zielgruppe und Benut
 
 Architektonisch ähneln sich die Frameworks in der Grundlegenden Handhabung ihrer Komponenten. Alle genannten Frameworks arbeiten mit Elementen, welche durch Python Objekte repräsentiert werden. Diese Objekte haben Parameter und können durch die Nutzung von Hierarchien und Geometriemanagern positioniert werden.
 
-Die Beispielorientierte Dokumentation von PySimpleGUI ermöglicht schnelle erste Ergebnisse und macht es für Einsteiger sehr zugänglich. Aus diesem Grund wurde zu Beginn dieses Projektes PySimpleGUI als Framework ausgewählt, was sich jedoch schnell als Fehlentscheidung herausstellte. Die unstrukturierte Dokumentation wird schnell zum Hindernis und auch das Lizenzmodell steht, wie oben erklärt, den PyQt und Tkinter nach. Der KM3004 wird vorraussichtlich auf Tkinter wechseln. 
+Die Beispielorientierte Dokumentation von PySimpleGUI ermöglicht schnelle erste Ergebnisse und macht es für Einsteiger sehr zugänglich. Aus diesem Grund wurde zu Beginn dieses Projektes PySimpleGUI als Framework ausgewählt, was sich jedoch schnell als Fehlentscheidung herausstellte. Die unstrukturierte Dokumentation wird schnell zum Hindernis und auch das Lizenzmodell steht, wie oben erklärt, PyQt und Tkinter nach. Der KM3004 wird vorraussichtlich auf Tkinter wechseln.
 
-
-
-
+\subsubsection{Datenbank}
+Für die Anbindung einer MySQL Datenbank gibt es verschiedene Optionen welche verwendet werden können, die sich aber für diesen Anwendungsfall nur geringfügig unterscheiden. Der von Oracle selbst entwickelte MySQL Python Connector und PyMySQL sind beide PEP249 kompatibel, sodass sich deren API meist nur im Namen der Methoden unterscheiden. In disem Projekt wurde PyMySQL verwendet, da ich Community-Lösungen gegenüber Angeboten von kommerziellen Anbietern bevorzuge.
 
 \subsection{Datenbankstruktur}
 TODO an Normalformen angelehnt
@@ -113,8 +114,9 @@ Unit tests schreinben mit pyunit test Framework
 \bibitem{bl}tkinter — Python interface to Tcl/Tk \url{https://docs.python.org/3/library/tkinter.html}
 \bibitem{bl}PyQt vs. Tkinter — Which Should You Choose for Your Next GUI Project? \url{https://www.pythonguis.com/faq/pyqt-vs-tkinter/}
 \bibitem{bl}PyQT6 Reference Guide \url{https://www.riverbankcomputing.com/static/Docs/PyQt6/index.html}
-
-
+\bibitem{bl}PEP 249 – Python Database API Specification v2.0 \url{https://peps.python.org/pep-0249/}
+\bibitem{bl}PEP 249 – Python Database API Specification v2.0 \url{https://pypi.org/project/PyMySQL/}
+\bibitem{bl}PEP 249 – Python Database API Specification v2.0 \url{https://pypi.org/project/mysql-connector-python/}
 
 \end{thebibliography}
 
