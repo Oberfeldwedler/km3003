@@ -8,6 +8,9 @@
 \usepackage{acronym}
 \usepackage{graphicx}
 
+\usepackage{biblatex}
+\addbibresource{./VMCB.bib} %Import the bibliography file
+
 \graphicspath{ {./images/} }
 
 \author{Samuel Brunner}
@@ -79,11 +82,13 @@ Die Beispielorientierte Dokumentation von PySimpleGUI ermöglicht schnelle erste
 \end{figure}
 
 \subsubsection{Datenbank}
-Für die Anbindung einer MySQL Datenbank gibt es verschiedene Optionen welche verwendet werden können, die sich aber für diesen Anwendungsfall nur geringfügig unterscheiden. Der von Oracle selbst entwickelte MySQL Python Connector und PyMySQL sind beide PEP249 kompatibel, sodass sich deren API meist nur im Namen der Methoden unterscheiden. In disem Projekt wurde PyMySQL verwendet, da ich Community-Lösungen gegenüber Angeboten von kommerziellen Anbietern bevorzuge.
+Für die Anbindung einer MySQL Datenbank gibt es verschiedene Optionen welche verwendet werden können, die sich aber für diesen Anwendungsfall nur geringfügig unterscheiden. Der von Oracle selbst entwickelte MySQL Python Connector und PyMySQL sind beide PEP249 kompatibel, sodass sich deren API meist nur im Namen der Methoden unterscheiden. In disem Projekt wurde PyMySQL verwendet, da ich Community-Lösungen gegenüber Angeboten von kommerziellen Anbietern bevorzuge. \cite{PyMySQLPurePython} \cite{MysqlconnectorpythonSelfcontainedPython}
 
 \subsection{Datenbankstruktur}
 
-Die Datenbank besteht aus den Tabellen users, products, purchases und deposits. Bei der Konzeption der Datenbank wurde speziell darauf geachtet Inkonsistenzen unmöglich zu machen und redundant gespeicherte Information zu verhindern. 
+Bei der Konzeption der Datenbank wurde speziell darauf geachtet Inkonsistenzen unmöglich zu machen und redundant gespeicherte Information zu verhindern. \cite{NormalisierungDatenbank2024}
+
+Die Datenbank besteht aus den Tabellen users, products, purchases und deposits. 
 
 
 durch die Verwendung von Fremdschlüsseln, 
@@ -133,17 +138,7 @@ Unit tests schreinben mit pyunit test Framework
 
 \clearpage
 
-\begin{thebibliography}{99}
-\bibitem{bl}Microsoft Kiosk Mode \url{https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/customize/kiosk-mode}
-\bibitem{bl}What is infrastructure as code (IaC)? \url{https://learn.microsoft.com/en-us/devops/deliver/what-is-infrastructure-as-code}
-\bibitem{bl}tkinter — Python interface to Tcl/Tk \url{https://docs.python.org/3/library/tkinter.html}
-\bibitem{bl}PyQt vs. Tkinter — Which Should You Choose for Your Next GUI Project? \url{https://www.pythonguis.com/faq/pyqt-vs-tkinter/}
-\bibitem{bl}PyQT6 Reference Guide \url{https://www.riverbankcomputing.com/static/Docs/PyQt6/index.html}
-\bibitem{bl}PEP 249 – Python Database API Specification v2.0 \url{https://peps.python.org/pep-0249/}
-\bibitem{bl}PEP 249 – Python Database API Specification v2.0 \url{https://pypi.org/project/PyMySQL/}
-\bibitem{bl}PEP 249 – Python Database API Specification v2.0 \url{https://pypi.org/project/mysql-connector-python/}
-
-\end{thebibliography}
+\printbibliography
 
 \clearpage
 \end{document}
