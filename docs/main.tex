@@ -34,7 +34,7 @@ Der KM3003 erlaubt nun die Identifizierung von Mitgliedern und Produkten über d
 
 Zusammengefasst ist der KM3003 ein Self-Checkout Point-of-Sale-Gerät mit Touchscreen und Barcode-Scanner.
 
-\section{Plattform und Systematchitektur}
+\section{Plattform und Systemarchitektur}
 Als Basis für den Kühlschrankmanager wurde ein Microsoft Surface 3 mit dem zugehörigen Dock verwendet.
 Das Surface 3 ist ein Tablet-Computer mit einem zuverlässigen kapazitativen Multi-Touchscreen und solider Treiberunterstützung unter Windows.
 Als Betriebssystem wird ein unverändertes Windows 11 Home verwendet, um eine gut getestete und stabile Basis zu bieten. Auch die Verfügbarkeit von Updates in der Zukunft wird so maximiert.
@@ -69,7 +69,7 @@ Die Dokumentation der drei Frameworks variiert stark in der Zielgruppe und Benut
 
 Architektonisch ähneln sich die Frameworks in der Grundlegenden Handhabung ihrer Komponenten. Alle genannten Frameworks arbeiten mit Elementen, welche durch Python Objekte repräsentiert werden. Diese Objekte haben Parameter und können durch die Nutzung von Hierarchien und Geometriemanagern positioniert werden.
 
-Die Beispielorientierte Dokumentation von PySimpleGUI ermöglicht schnelle erste Ergebnisse und macht es für Einsteiger sehr zugänglich. Aus diesem Grund wurde zu Beginn dieses Projektes PySimpleGUI als Framework ausgewählt, was sich jedoch schnell als Fehlentscheidung herausstellte. Die unstrukturierte Dokumentation wird schnell zum Hindernis und auch das Lizenzmodell steht, wie oben erklärt, PyQt und Tkinter nach. Der KM3004 wird vorraussichtlich auf Tkinter wechseln.
+Die Beispielorientierte Dokumentation von PySimpleGUI ermöglicht schnelle erste Ergebnisse und macht es für Einsteiger sehr zugänglich. Aus diesem Grund wurde zu Beginn dieses Projektes PySimpleGUI als Framework ausgewählt, was sich jedoch schnell als Fehlentscheidung herausstellte. Die unstrukturierte Dokumentation wird schnell zum Hindernis und auch das Lizenzmodell steht, wie oben erklärt, PyQt und Tkinter nach. Für das Projekt KM3004 wird vorraussichtlich Tkinter verwendet.
 
 
 \begin{figure}[ht]
@@ -82,8 +82,22 @@ Die Beispielorientierte Dokumentation von PySimpleGUI ermöglicht schnelle erste
 Für die Anbindung einer MySQL Datenbank gibt es verschiedene Optionen welche verwendet werden können, die sich aber für diesen Anwendungsfall nur geringfügig unterscheiden. Der von Oracle selbst entwickelte MySQL Python Connector und PyMySQL sind beide PEP249 kompatibel, sodass sich deren API meist nur im Namen der Methoden unterscheiden. In disem Projekt wurde PyMySQL verwendet, da ich Community-Lösungen gegenüber Angeboten von kommerziellen Anbietern bevorzuge.
 
 \subsection{Datenbankstruktur}
-TODO an Normalformen angelehnt
-atomare Felder
+
+Die Datenbank besteht aus den Tabellen users, products, purchases und deposits. Bei der Konzeption der Datenbank wurde speziell darauf geachtet Inkonsistenzen unmöglich zu machen und redundant gespeicherte Information zu verhindern. 
+
+
+durch die Verwendung von Fremdschlüsseln, 
+
+Bei der Konzeption der Datenbankstruktur wurde speziell darauf geachtet die Datenbank Normalformen, soweit es den Aufwand rechtfertigt, einzuhalten. 
+Alle Felder sind atomar, sodass die \ac{1NF} erfüllt ist. 
+Weiterhin nutzt die Datenbank keine zusammengesetzten Primärschlüssel, sodass auch die \ac{2NF} erfüllt ist.
+
+jedes Nichtprimärattribut von allen also dem einen Schlüssenanteil abhängig ist und somit auch die zweite Normalform erfüllt ist.
+Die \ac{3NF} verlangt, dass keine Abhängigkeiten zwischen Nichtschlüsselanteilen bestehen. Dies wurde in der Tabelle purchases verletzt, da eine Abhängigkeit zwischen price\_then und date in Kombination mit der product\_id besteht. Dies führt aber lediglich dazu, dass der Preis eines Produktes in einem Bestimmten Zeitraum für jeden Einkauf redundant gespeichert wird. Es kann hier nur zu Inkonsistenzen führen, wenn der Wert des Attributes price\_then im Nachhinein geändert wird.
+Dies bliebe allerdings allerdings für den Betrieb folgenlos, da dieses Feld rein Statistische Zwecke erfüllt. Lösen könnte man dieses Problem, indem man eine neue Tabelle prices einführt, in welcher jeder Preis mit seinem Gültigkeitszeitraum nur einmal vorkommt.
+
+Weiterhin wurde die \ac{3NF} in der Tabelle users verletzt.
+
 
 \subsection{Testing}
 Unit tests schreinben mit pyunit test Framework
