@@ -60,7 +60,7 @@ Auch die Verfügbarkeit von bestehenden Bibliotheken für \ac{GUI}, Datenbankanb
 
 \subsection{Verwendete Bibliotheken und Frameworks}
 
-\subsubsection{Graphical User Interface}
+\subsubsection{\ac{GUI} Framework}
 
 Bei der Auswahl eines GUI-Frameworks für Python-Projekte bieten PyQt, Tkinter und PySimpleGUI unterschiedliche Stärken und Einschränkungen in Bezug auf Lizenzmodell, Dokumentation und Architektur. 
 
@@ -81,21 +81,20 @@ Die Beispielorientierte Dokumentation von PySimpleGUI ermöglicht schnelle erste
     \label{fig:gui}
 \end{figure}
 
-\subsubsection{Datenbank}
+\subsubsection{Datenbank-Connector}
 Für die Anbindung einer MySQL Datenbank gibt es verschiedene Optionen welche verwendet werden können, die sich aber für diesen Anwendungsfall nur geringfügig unterscheiden. Der von Oracle selbst entwickelte MySQL Python Connector und PyMySQL sind beide PEP249 kompatibel, sodass sich deren API meist nur im Namen der Methoden unterscheiden. In disem Projekt wurde PyMySQL verwendet, da ich Community-Lösungen gegenüber Angeboten von kommerziellen Anbietern bevorzuge. \cite{PyMySQLPurePython} \cite{MysqlconnectorpythonSelfcontainedPython}
 
 \subsection{Datenbankstruktur}
-Bei der Konzeption der Datenbank wurde speziell darauf geachtet, Redundanzen und Inkonsistenzen durch die Struktur der Datenbank zu verhindern. Jede Logik welche direkt durch die Struktur der Datenbank abgebildet werden kann wurde in die Datenbank zu verlagert.
-So 
+Bei der Konzeption der Datenbank wurde besonderer Wert auf die Vermeidung von Redundanzen und Inkonsistenzen gelegt. Die Datenbankstruktur wurde so gestaltet, dass logische Regeln, die direkt durch den MySQL-Server abgebildet werden können, konsequent in diesen verlagert wurden.
 
-Die Datenbank besteht aus den Tabellen users, products, purchases und deposits. 
-\cite{NormalisierungDatenbank2024}
+Erforderliche Spalten wurden als NOT NULL definiert, während nicht zwingend erforderliche Spalten mit sinnvollen Default-Werten versehen wurden. Dies gewährleistet, dass bei der Erstellung unvollständiger Datensätze automatisch ein Fehler ausgelöst wird. Synthetische Primärschlüssel werden durch Auto-Inkrement automatisch generiert, was die Konsistenz der Primärschlüssel sicherstellt.
 
-durch die Verwendung von Fremdschlüsseln, 
+Die Wahl der Datentypen erfolgte so restriktiv wie möglich, um eine präzise und fehlerfreie Datenspeicherung zu ermöglichen. Beispielsweise sind für Eurobeträge maximal zwei Dezimalstellen erlaubt, wodurch unnötige Abweichungen ausgeschlossen werden.
 
-Bei der Konzeption der Datenbankstruktur wurde speziell darauf geachtet die Datenbank Normalformen, soweit es den Aufwand rechtfertigt, einzuhalten. 
-Alle Felder sind atomar, sodass die \ac{1NF} erfüllt ist. 
-Weiterhin nutzt die Datenbank keine zusammengesetzten Primärschlüssel, sodass auch die \ac{2NF} erfüllt ist.
+Zudem werden mithilfe von DEFAULT-Definitionen und Expressions bestimmte Spalten automatisch mit Werten befüllt. Beispielsweise werden Timestamps direkt vom MySQL-Server gesetzt, wodurch diese bei einer INSERT-Query nicht explizit angegeben werden müssen. Dies schafft eine einheitliche Zeitreferenz (Single Source of Truth) und minimiert potenzielle Fehlerquellen, die durch abweichende Systemzeiten auftreten könnten.
+
+Durch diese Maßnahmen wird eine hohe Datenqualität und Konsistenz sichergestellt, während gleichzeitig die Effizienz der Datenverarbeitung erhöht wird.
+
 
 jedes Nichtprimärattribut von allen also dem einen Schlüssenanteil abhängig ist und somit auch die zweite Normalform erfüllt ist.
 Die \ac{3NF} verlangt, dass keine Abhängigkeiten zwischen Nichtschlüsselanteilen bestehen. Dies wurde in der Tabelle purchases verletzt, da eine Abhängigkeit zwischen price\_then und date in Kombination mit der product\_id besteht. Dies führt aber lediglich dazu, dass der Preis eines Produktes in einem Bestimmten Zeitraum für jeden Einkauf redundant gespeichert wird. Es kann hier nur zu Inkonsistenzen führen, wenn der Wert des Attributes price\_then im Nachhinein geändert wird.
