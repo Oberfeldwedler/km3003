@@ -120,6 +120,30 @@ Unit tests schreinben mit pyunit test Framework
 
 
 \section{Deployment}
+
+Die Unterstützung für Herangehensweisen welche \ac{IaC} nutzen ist unter Windows sehr schlecht. Der notwendige Arbeitsaufwand für eine vollständige Automatisierung des Setups, in Anbetracht der sehr wenigen notwendigen Installationsschritte, wäre zu groß. Deswegen werden die durchzuführenden Installationsschritte hier und im globalen README des Projekts dokumentiert.
+
+\begin{enumerate}
+    \item Install Python
+    \begin{itemize}
+        \item do NOT install als admin
+        \item set the checkbox to add to PATH
+    \end{itemize}
+    \item install python libraries
+    \begin{verbatim}
+python -m pip install pysimplegui pyserial pymysql cryptography
+    \end{verbatim}
+    \item setup km3003.conf
+    \begin{itemize}
+        \item make a copy of km3003\_sample.conf and name it km3003.conf
+        \item customize database info
+        \item customize COM port
+    \end{itemize}
+    \item obtain PySimpleGUI Hobbyist license
+    \item Setup Windows Task Scheduling to reboot the system periodically
+\end{enumerate}
+
+
 - deployment:
     surface, ansbile for km3003 standalone
     cyclical restart windows task scheduler
@@ -141,6 +165,7 @@ Unit tests schreinben mit pyunit test Framework
 \begin{acronym}[OTH R]
     \acro{USB CDC}{USB communications device class}
     \acro{GUI}{graphical user interface}
+    \acro{IaC}{Infrastructure-as-Code}
     \acro{1NF}{erste Normalform}
     \acro{2NF}{zweite Normalform}
     \acro{3NF}{dritte Normalform}
