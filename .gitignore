@@ -1,3 +1,5 @@
+docs/main.pdf
+
 **.pyc
 km3003.conf
 
@@ -31,6 +33,7 @@ km3003.spec
 *.cb
 *.cb2
 .*.lb
+
 
 ## Intermediate documents:
 *.dvi

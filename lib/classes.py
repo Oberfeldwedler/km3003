@@ -1,19 +1,19 @@
 import PySimpleGUI as sg
 
 class User:
-    def __init__(self, id, barcode, name):
-        self.id = id
+    def __init__(self, barcode, name, surname, emoji):
         self.barcode = barcode
         self.name = name
-        
+        self.surname = surname
+        self.emoji = emoji
 
 class Product:
     sequential_product_row_counter = 0
 
-    def __init__(self, id, barcode, name, price):
-        self.id = id
+    def __init__(self, barcode, name, price, producer):
         self.barcode = barcode
         self.name = name
+        self.producer = producer
         self.price = price
         self.sequential_product_row_number = Product.sequential_product_row_counter
         Product.sequential_product_row_counter += 1
@@ -22,6 +22,7 @@ class Product:
         product_row = [ 
             sg.pin(
                 sg.Col( [[
+                    sg.Text(self.producer), 
                     sg.Text(self.name), 
                     sg.Push(),
                     sg.Text(self.price), 

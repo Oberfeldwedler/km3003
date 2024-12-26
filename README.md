@@ -13,14 +13,14 @@
     python -m pip install pysimplegui pyserial pymysql cryptography
     ```
 
-3. setup km3003.conf
+3. 
     - make a copy of `km3003_sample.conf` and name it `km3003.conf` 
     - customize database info
     - customize COM port
 
 4. TODO: get hobby pysimplegui license key from pysimplegui.com 
  
-4. TODO: configure scheduled reboot and updates
+5. TODO: configure scheduled reboot and updates
 
 # Raspbian standalone
 

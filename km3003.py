@@ -288,14 +288,14 @@ while True:
         if isinstance(result, classes.User):
             shopping_cart.user = result
             current_balance = database_caller.calculateAndUpdateUserBalance(result)
-            window['-MEMBER-'].update(f"{result.name}       Guthaben: {current_balance}€")
-            logger.debug(f"User '{result.name}' was detected!")
+            window['-MEMBER-'].update(f"{result.name} {result.surname} {result.emoji}       Guthaben: {current_balance}€")
+            logger.debug(f"User '{result.name} {result.surname} {result.emoji}' was detected!")
         elif isinstance(result, classes.Product):
             shopping_cart.products_list.append(result)
             window.extend_layout(window['-PRODUCT_LIST-'], [ result.generateRow() ])
             total_checkout_sum = calculateTotalCheckoutSum(shopping_cart.products_list)
             window['-SUM-'].update(f"{total_checkout_sum}€")
-            logger.debug(f"Product '{result.name}' was detected!")
+            logger.debug(f"Product '{result.producer} {result.name}' was detected!")
         else:
             window.write_event_value('-BARCODE_UNKNOWN-', item)
 

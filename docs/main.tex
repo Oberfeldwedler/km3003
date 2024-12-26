@@ -82,9 +82,11 @@ Die Beispielorientierte Dokumentation von PySimpleGUI ermöglicht schnelle erste
 \end{figure}
 
 \subsubsection{Datenbank-Connector}
-Für die Anbindung einer MySQL Datenbank gibt es verschiedene Optionen welche verwendet werden können, die sich aber für diesen Anwendungsfall nur geringfügig unterscheiden. Der von Oracle selbst entwickelte MySQL Python Connector und PyMySQL sind beide PEP249 kompatibel, sodass sich deren API meist nur im Namen der Methoden unterscheiden. In disem Projekt wurde PyMySQL verwendet, da ich Community-Lösungen gegenüber Angeboten von kommerziellen Anbietern bevorzuge. \cite{PyMySQLPurePython} \cite{MysqlconnectorpythonSelfcontainedPython}
+Für die Anbindung einer MySQL Datenbank gibt es verschiedene Optionen welche verwendet werden können, die sich aber für diesen Anwendungsfall nur geringfügig unterscheiden. Der von Oracle selbst entwickelte MySQL Python Connector und PyMySQL sind beide PEP249 kompatibel, sodass sich deren API meist nur im Namen der Methoden unterscheiden. In disem Projekt wurde PyMySQL verwendet, da ich Community-Lösungen gegenüber Angeboten von kommerziellen Anbietern bevorzuge.  \cite{MysqlconnectorpythonSelfcontainedPython} \cite{PyMySQLPurePython}
+
 
 \subsection{Datenbankstruktur}
+\subsubsection{Maßnahmen zur Vermeidung von Inkonsistenzen und Redundanzen}
 Bei der Konzeption der Datenbank wurde besonderer Wert auf die Vermeidung von Redundanzen und Inkonsistenzen gelegt. Die Datenbankstruktur wurde so gestaltet, dass logische Regeln, die direkt durch den MySQL-Server abgebildet werden können, konsequent in diesen verlagert wurden.
 
 Erforderliche Spalten wurden als NOT NULL definiert, während nicht zwingend erforderliche Spalten mit sinnvollen Default-Werten versehen wurden. Dies gewährleistet, dass bei der Erstellung unvollständiger Datensätze automatisch ein Fehler ausgelöst wird. Synthetische Primärschlüssel werden durch Auto-Inkrement automatisch generiert, was die Konsistenz der Primärschlüssel sicherstellt.
@@ -93,24 +95,72 @@ Die Wahl der Datentypen erfolgte so restriktiv wie möglich, um eine präzise un
 
 Zudem werden mithilfe von DEFAULT-Definitionen und Expressions bestimmte Spalten automatisch mit Werten befüllt. Beispielsweise werden Timestamps direkt vom MySQL-Server gesetzt, wodurch diese bei einer INSERT-Query nicht explizit angegeben werden müssen. Dies schafft eine einheitliche Zeitreferenz (Single Source of Truth) und minimiert potenzielle Fehlerquellen, die durch abweichende Systemzeiten auftreten könnten.
 
-Durch diese Maßnahmen wird eine hohe Datenqualität und Konsistenz sichergestellt, während gleichzeitig die Effizienz der Datenverarbeitung erhöht wird.
+Außerdem erfüllt die Datenbank die Normalisierungsanforderungen bis zur \ac{5NF} vollständig. ??? Wirklich ???
+
+Durch diese Maßnahmen wird eine hohe Datenqualität und Konsistenz sichergestellt, während gleichzeitig Verfügbarkeit der Daten für weitere Verarbeitung maximiert wird.
+
+\subsection{Objektstruktur}
+
+\subsubsection{MySQL Caller Objekt}
 
 
-jedes Nichtprimärattribut von allen also dem einen Schlüssenanteil abhängig ist und somit auch die zweite Normalform erfüllt ist.
-Die \ac{3NF} verlangt, dass keine Abhängigkeiten zwischen Nichtschlüsselanteilen bestehen. Dies wurde in der Tabelle purchases verletzt, da eine Abhängigkeit zwischen price\_then und date in Kombination mit der product\_id besteht. Dies führt aber lediglich dazu, dass der Preis eines Produktes in einem Bestimmten Zeitraum für jeden Einkauf redundant gespeichert wird. Es kann hier nur zu Inkonsistenzen führen, wenn der Wert des Attributes price\_then im Nachhinein geändert wird.
-Dies bliebe allerdings allerdings für den Betrieb folgenlos, da dieses Feld rein Statistische Zwecke erfüllt. Lösen könnte man dieses Problem, indem man eine neue Tabelle prices einführt, in welcher jeder Preis mit seinem Gültigkeitszeitraum nur einmal vorkommt.
+\subsubsection{ShoppingCart}
+Die Klasse ShoppingCart bildet das Kernsegment der Anwendung. Im ShoppingCart werden Objekte gespeichert, welche die Produkte im Warenkorb und den Nutzer, der sich als letztes eingescannt hat, repräsentieren. Auch eine Instanz der Klasse MySQL wird von der Klasse ShoppingCart verwaltet.
+Alle für den Nutzer auf der Benuteroberfläche verfügbare Funktionen, wurden direkt in den Methoden des ShoppingCart Objektes implementiert. Funktionen, welche Datenbankabfragen erfordern, werden durch weitere Funktionsaufrufe am MySQL-Caller-Objekt initiiert.
+Beim Start des KM3003 wird eine Instanz der Klasse ShoppingCart erstellt welche bis zum Beenden der Anwendung bestehen bleibt.
 
-Weiterhin wurde die \ac{3NF} in der Tabelle users verletzt.
+Objekte der gescannten Produkte oder des gescannten Nutzers, werden im Main-Loop der Anwendungen erstellt und im ShoppingCart Objekt gespeichert.
 
-
-\subsection{Testing}
-Unit tests schreinben mit pyunit test Framework
-
-
-
-
+% \subsection{Testing}
+% Unit tests schreinben mit pyunit test Framework
 
 \section{Deployment}
+
+Die Unterstützung für Herangehensweisen welche \ac{IaC} nutzen ist unter Windows sehr schlecht. Der notwendige Arbeitsaufwand für eine vollständige Automatisierung des Setups, in Anbetracht der sehr wenigen notwendigen Installationsschritte, wäre zu groß. Deswegen werden die durchzuführenden Installationsschritte hier und im globalen README des Projekts dokumentiert.
+
+\begin{enumerate}
+    \item Install Python
+    \begin{itemize}
+        \item do NOT install als admin
+        \item set the checkbox to add to PATH
+    \end{itemize}
+    \item install python libraries
+    \begin{verbatim}
+python -m pip install pysimplegui pyserial pymysql cryptography
+    \end{verbatim}
+    \item setup km3003.conf
+    \begin{itemize}
+        \item make a copy of km3003\_sample.conf and name it km3003.conf
+        \item customize database info
+        \item customize COM port
+    \end{itemize}
+    \item obtain PySimpleGUI Hobbyist license
+    \item Setup Windows Task Scheduling to reboot the system periodically
+\end{enumerate}
+
+Die Unterstützung für Herangehensweisen welche \ac{IaC} nutzen ist unter Windows sehr schlecht. Der notwendige Arbeitsaufwand für eine vollständige Automatisierung des Setups, in Anbetracht der sehr wenigen notwendigen Installationsschritte, wäre zu groß. Deswegen werden die durchzuführenden Installationsschritte hier und im globalen README des Projekts dokumentiert.
+
+\begin{enumerate}
+    \item Install Python
+    \begin{itemize}
+        \item do NOT install als admin
+        \item set the checkbox to add to PATH
+    \end{itemize}
+    \item install python libraries
+    \begin{verbatim}
+python -m pip install pysimplegui pyserial pymysql cryptography
+    \end{verbatim}
+    \item setup km3003.conf
+    \begin{itemize}
+        \item make a copy of km3003\_sample.conf and name it km3003.conf
+        \item customize database info
+        \item customize COM port
+    \end{itemize}
+    \item obtain PySimpleGUI Hobbyist license
+    \item Setup Windows Task Scheduling to reboot the system periodically
+\end{enumerate}
+
+
 - deployment:
     surface, ansbile for km3003 standalone
     cyclical restart windows task scheduler
@@ -120,8 +170,11 @@ Unit tests schreinben mit pyunit test Framework
     - wiedreraufbau von Verbindunsabbrüchen (Datenbank und Scanner) zur Laufzeit
 
 \section{Ausblick und Verbesserungsvorschläge}
-    UI Framework is kacke
-    Sounds
+    Das kommerzialisierte Lizenzmodell und die auf Anfänger ausgerichtete Dokumentation, machen PySimpleGUI zur schlechtesten Wahl unter den drei diskutierten Frameworks. 
+    In nachfolgenden Versionen wird eine Umstellung auf Tkinter oder PyQt erfolgen.
+    
+    Bisher werden neue Benutzer oder Produkte direkt in die Datenbank über das Programm MySQL Workbench eingetragen. Mithilfe eines dedizierten Clients zur Administration von Entities und Events welche in der Datenbank gespeichert sind, könnten diese Aufgaben komfortabler und sicherer gemacht werden.
+    Eine weitere Verarbeitung und Darstellung der in der Datenbank gespeicherten Daten ist geplant. Hierfür sehe ich eine einfache Anwendung in Matlab oder eine Excel Tabelle als am geeignetsten an. Ein gehostetes Dashboard ist nicht vorgesehen, da die personenbezogenen Daten nicht jederezeit uneingeschränkt zugänglich sein müssen oder gar sollen.
 
 \section{Inline documetation anhängen}
 \appendix
@@ -129,9 +182,12 @@ Unit tests schreinben mit pyunit test Framework
 \begin{acronym}[OTH R]
     \acro{USB CDC}{USB communications device class}
     \acro{GUI}{graphical user interface}
+    \acro{IaC}{Infrastructure-as-Code}
     \acro{1NF}{erste Normalform}
     \acro{2NF}{zweite Normalform}
     \acro{3NF}{dritte Normalform}
+    \acro{4NF}{vierte Normalform}
+    \acro{5NF}{fünfte Normalform}
 \end{acronym}
 
 \clearpage
