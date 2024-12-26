@@ -31,6 +31,7 @@ km3003.spec
 *.cb
 *.cb2
 .*.lb
+main.pdf
 
 ## Intermediate documents:
 *.dvi
