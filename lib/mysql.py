@@ -76,7 +76,7 @@ class MySql:
             
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
-                return classes.User(barcode, dataDict['name'], dataDict['surname'], dataDict['emoji'])
+                return classes.User(barcode, dataDict['first_name'], dataDict['last_name'], dataDict['emoji'])
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")
             self.connection.commit()
@@ -96,7 +96,7 @@ class MySql:
             
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
-                return classes.Product(barcode, dataDict['name'], dataDict['sell_price'], dataDict['producer'])
+                return classes.Product(barcode, dataDict['name'], dataDict['sell_price'], dataDict['brand'])
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique product! ({rowCount} results)")
             self.connection.commit()
