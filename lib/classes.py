@@ -13,7 +13,6 @@ class Product:
     def __init__(self, barcode, name, price, brand):
         self.barcode = barcode
         self.name = name
-        self.producer = producer
         self.price = price
         self.brand = brand
         self.sequential_product_row_number = Product.sequential_product_row_counter
