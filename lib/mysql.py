@@ -47,10 +47,25 @@ class MySql:
         except:
             logging.warning("Connection to database could not be closed! Ignoring!")
             pass
-       
+
+    """
+    Checks whether there is a working database connection 
+    and reestablishes when there isn't.
+
+    Args: 
+        None
+    Returns:
+        connectionState: The connection state to the MySql server
+        connectionStateChanged: This indicates, whether the connection
+            state is now different to the one specified in 
+            __connectionState.
+            This information is used by the GUI to update the layout.
+    """
     def ensureDatabaseConnection(self):
         lastConnectionState = self.__connectionState
         if self.connection == None:
+            # Here we land only when the application has just been started and a database connection has not yet been established.
+            # This is the regular way for connection to be established for the first time.
             self.establishConnection()
         else:
             try:
@@ -106,6 +121,19 @@ class MySql:
             
         return None
 
+
+    """
+    Searches in the database for users or products with the 
+    supplied barcode. If an entity can be identified by the 
+    code, an object containing the fetched information about
+    the entity is returned.
+
+    Args: 
+        barcode: The content of a scanned barcode.
+    Returns:
+        entity: Object representing a user or a product. 
+            None if no matching entity is found in the database. 
+    """
     def runBarcodeAgainstDatabase(self, barcode):
         user = self.getUserFromDatabase(barcode)
         product = self.getProductFromDatabase(barcode)
@@ -121,6 +149,15 @@ class MySql:
             logger.warning(f"Barcode {barcode} is neither user nor product!")
             return None
 
+
+    """
+    Fetches the current user_balance from the database.
+    Args:
+        user: An instance if a user oject.
+    Returns:
+        user_balance: The current balance of the users.
+        None if no matching user is found in the database.
+    """
     def getUserBalance(self, user):
         get_user_balance = ("SELECT current_balance FROM users WHERE barcode=%s")
         try:
@@ -133,7 +170,7 @@ class MySql:
             logger.error("Failed to get user balance:")
             logger.error(err)
             return None  
- 
+
     def calculateUserBalance(self, user):
         get_purchases = ("SELECT price_then FROM purchases WHERE user_barcode=%s")
         get_deposits = ("SELECT amount FROM deposits WHERE user_barcode=%s")

@@ -4,9 +4,27 @@
 
 \usepackage{caption}
 \usepackage{float}
+
+
 \usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Technische Dokumentation Kühlschrankmanager KM3003},
+    pdfpagemode=FullScreen,
+    }
+
+
 \usepackage{acronym}
 \usepackage{graphicx}
+
+\usepackage{xcolor}
+% Code highlighting
+\NewDocumentCommand{\codeword}{v}{%
+\texttt{\textcolor{blue}{#1}}%
+}
 
 \usepackage{biblatex}
 \addbibresource{./VMCB.bib} %Import the bibliography file
@@ -86,7 +104,8 @@ Für die Anbindung einer MySQL Datenbank gibt es verschiedene Optionen welche ve
 
 
 \subsection{Datenbankstruktur}
-\subsubsection{Maßnahmen zur Vermeidung von Inkonsistenzen und Redundanzen}
+\subsubsection{Maßnahmen zur Verhinderung von Inkonsistenzen und Redundanzen}
+\label{sec:measures_to_prevent_inconsistencies_and_redundancies}
 Bei der Konzeption der Datenbank wurde besonderer Wert auf die Vermeidung von Redundanzen und Inkonsistenzen gelegt. Die Datenbankstruktur wurde so gestaltet, dass logische Regeln, die direkt durch den MySQL-Server abgebildet werden können, konsequent in diesen verlagert wurden.
 
 Erforderliche Spalten wurden als NOT NULL definiert, während nicht zwingend erforderliche Spalten mit sinnvollen Default-Werten versehen wurden. Dies gewährleistet, dass bei der Erstellung unvollständiger Datensätze automatisch ein Fehler ausgelöst wird. Synthetische Primärschlüssel werden durch Auto-Inkrement automatisch generiert, was die Konsistenz der Primärschlüssel sicherstellt.
@@ -99,13 +118,10 @@ Außerdem erfüllt die Datenbank die Normalisierungsanforderungen bis zur \ac{5N
 
 Durch diese Maßnahmen wird eine hohe Datenqualität und Konsistenz sichergestellt, während gleichzeitig Verfügbarkeit der Daten für weitere Verarbeitung maximiert wird.
 
-\subsection{Objektstruktur}
-
-\subsubsection{MySQL Caller Objekt}
-
+\subsection{Klassen}
 
 \subsubsection{ShoppingCart}
-Die Klasse ShoppingCart bildet das Kernsegment der Anwendung. Im ShoppingCart werden Objekte gespeichert, welche die Produkte im Warenkorb und den Nutzer, der sich als letztes eingescannt hat, repräsentieren. Auch eine Instanz der Klasse MySQL wird von der Klasse ShoppingCart verwaltet.
+Die Klasse ShoppingCart bildet das Kernsegment der Anwendung. Im ShoppingCart werden Objekte gespeichert, welche die Produkte im Warenkorb und den Nutzer, der sich als letztes eingescannt hat, repräsentieren. Auch Instanzen der Klassen für die Kommunikation mit dem MySQL-Server und dem Scanner werden von der Klasse ShoppingCart verwaltet.
 Alle für den Nutzer auf der Benuteroberfläche verfügbare Funktionen, wurden direkt in den Methoden des ShoppingCart Objektes implementiert. Funktionen, welche Datenbankabfragen erfordern, werden durch weitere Funktionsaufrufe am MySQL-Caller-Objekt initiiert.
 Beim Start des KM3003 wird eine Instanz der Klasse ShoppingCart erstellt welche bis zum Beenden der Anwendung bestehen bleibt.
 
@@ -114,29 +130,32 @@ Objekte der gescannten Produkte oder des gescannten Nutzers, werden im Main-Loop
 % \subsection{Testing}
 % Unit tests schreinben mit pyunit test Framework
 
+\subsubsection{MySql}
+Die Instanz eines Objektes der Klasse MySql verwaltet die Verbindung zur Datenbank und führt alle Operationen durch, in welchen Daten mit der Datenbank ausgetauscht werden. 
+
+Im Main Loop der Anwendung wird die Funktion \hyperref[func:ensureDatabaseConnection]{ensureDatabaseConnection}  periodisch aufgerufen und damit der aktuelle Verbindungsstatus abgefragt.
+Ist die Verbindung unterbrochen löst die Funktion \hyperref[func:ensureDatabaseConnection]{ensureDatabaseConnection} einen erneuten Verbindungsversuch aus, sodass die Verbindung zur Datenbank automatisch wiederhergestellt wird. Der initiale Verbindungsaufbau funktioniert ebenfalls über diesen Mechanismus.
+
+Über die Funktion \hyperref[func:runBarcodeAgainstDatabase]{runBarcodeAgainstDatabase} kann die Datenbank nach einem gescannten Barcode durchsucht werden. Falls eine Entität mit dem Barcode eindeutig identifiziert wurde, wird ein Objekt zurückgegeben, welches alle Informationen zur Entität enthält. Hierbei ist es unerheblich ob es sich bei der Entität um einen Nutzer oder ein Produkt handelt.
+
+Wie in Kapitel \ref{sec:measures_to_prevent_inconsistencies_and_redundancies} erklärt, wurde bei der Konzeption dieses Projektes explizit darauf geachtet, die Datenbank als Single Source of Truth zu respektieren. Deswegen wird das Guthaben eines Users bei jeder Verwendung über die Funktion \hyperref[func:getUserBalance]{getUserBalance} aus der Datenbank geladen.
+
+Die Guthaben der Nutzer werden über die Funktion calculateAndUpdateUserBalance lokal durch Addition aller Einzahlungen und Subtraktion aller Einkäufe berechnet.
+
+Da sichergestellt ist, dass die Daten in der Datenbank immer aktuell sind, könnten in der Zukunft auch weitere Kühlschrankmanager oder Clients zur Administration gleichzeitig eingesetzt werden.
+
+\subsubsection{Scanner}
+
+\subsection{Logging}
+
+
+Logging von database queries mit mogrify
+Loglevels
+
+\subsection{Konfiguration}
+
+
 \section{Deployment}
-
-Die Unterstützung für Herangehensweisen welche \ac{IaC} nutzen ist unter Windows sehr schlecht. Der notwendige Arbeitsaufwand für eine vollständige Automatisierung des Setups, in Anbetracht der sehr wenigen notwendigen Installationsschritte, wäre zu groß. Deswegen werden die durchzuführenden Installationsschritte hier und im globalen README des Projekts dokumentiert.
-
-\begin{enumerate}
-    \item Install Python
-    \begin{itemize}
-        \item do NOT install als admin
-        \item set the checkbox to add to PATH
-    \end{itemize}
-    \item install python libraries
-    \begin{verbatim}
-python -m pip install pysimplegui pyserial pymysql cryptography
-    \end{verbatim}
-    \item setup km3003.conf
-    \begin{itemize}
-        \item make a copy of km3003\_sample.conf and name it km3003.conf
-        \item customize database info
-        \item customize COM port
-    \end{itemize}
-    \item obtain PySimpleGUI Hobbyist license
-    \item Setup Windows Task Scheduling to reboot the system periodically
-\end{enumerate}
 
 Die Unterstützung für Herangehensweisen welche \ac{IaC} nutzen ist unter Windows sehr schlecht. Der notwendige Arbeitsaufwand für eine vollständige Automatisierung des Setups, in Anbetracht der sehr wenigen notwendigen Installationsschritte, wäre zu groß. Deswegen werden die durchzuführenden Installationsschritte hier und im globalen README des Projekts dokumentiert.
 
@@ -176,9 +195,63 @@ python -m pip install pysimplegui pyserial pymysql cryptography
     Bisher werden neue Benutzer oder Produkte direkt in die Datenbank über das Programm MySQL Workbench eingetragen. Mithilfe eines dedizierten Clients zur Administration von Entities und Events welche in der Datenbank gespeichert sind, könnten diese Aufgaben komfortabler und sicherer gemacht werden.
     Eine weitere Verarbeitung und Darstellung der in der Datenbank gespeicherten Daten ist geplant. Hierfür sehe ich eine einfache Anwendung in Matlab oder eine Excel Tabelle als am geeignetsten an. Ein gehostetes Dashboard ist nicht vorgesehen, da die personenbezogenen Daten nicht jederezeit uneingeschränkt zugänglich sein müssen oder gar sollen.
 
-\section{Inline documetation anhängen}
+
 \appendix
 
+\section{Inline documetation}
+
+\subsection{ensureDatabaseConnection(self)}
+\label{func:ensureDatabaseConnection}
+
+\begin{verbatim}
+"""
+Checks whether there is a working database connection 
+and reestablishes when there isn't.
+
+Args: 
+    None
+Returns:
+    connectionState: The connection state to the MySql server
+    connectionStateChanged: This indicates, whether the connection
+        state is now different to the one specified in 
+        __connectionState.
+        This information is used by the GUI to update the layout.
+"""
+\end{verbatim}
+
+\subsection{runBarcodeAgainstDatabase(self, barcode)}
+\label{func:runBarcodeAgainstDatabase}
+
+\begin{verbatim}
+"""
+Searches in the database for users or products with the 
+supplied barcode. If an entity can be identified by the 
+code, an object containing the fetched information about
+the entity is returned.
+
+Args: 
+    Barcode: The content of a scanned barcode.
+Returns:
+    Entity: Object representing a user or a product. 
+        None if no matching entity is found in the database. 
+"""
+\end{verbatim}
+
+\subsection{getUserBalance(self, user)}
+\label{func:getUserBalance}
+
+\begin{verbatim}
+"""
+Fetches the current user_balance from the database.
+Args:
+    user: An instance if a user oject.
+Returns:
+    user_balance: The current balance of the users.
+    None if no matching user is found in the database.
+"""
+\end{verbatim}
+
+\section{Abkürzungsverzeichnis}
 \begin{acronym}[OTH R]
     \acro{USB CDC}{USB communications device class}
     \acro{GUI}{graphical user interface}
