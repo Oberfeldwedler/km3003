@@ -18,12 +18,12 @@ serial_settings_dict = dict(config['serial'])
 inactivity_timeout = int(general_settings_dict['screen_timeout_ms'])
 message_timeout = int(general_settings_dict['message_timeout_ms'])
 
-emoji_pattern = re.compile("["
-        u"\U0001F600-\U0001F64F"  # emoticons
-        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-        u"\U0001F680-\U0001F6FF"  # transport & map symbols
-        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                           "]+", flags=re.UNICODE)
+# emoji_pattern = re.compile("["
+#         u"\U0001F600-\U0001F64F"  # emoticons
+#         u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+#         u"\U0001F680-\U0001F6FF"  # transport & map symbols
+#         u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+#                            "]+", flags=re.UNICODE)
 
 def str2bool(value : str) -> bool:
     return value.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'ja', 'jawoll', 'definitiv']
