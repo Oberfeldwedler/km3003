@@ -185,8 +185,6 @@ def showMessageLayout(message):
     window['-CHECKOUT_LAYOUT-'].update(visible=False)
     window['-MESSAGE-'].update(message)
 
-# TODO: Do not store user balance locally
-
 def layout_switcher(event, values):
 
     if event != "__TIMEOUT__":
