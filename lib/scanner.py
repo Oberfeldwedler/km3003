@@ -68,6 +68,17 @@ class SerialScanner(Scanner):
         self.isStopRequested = False
         self.thread.start()
 
+
+    """
+    This function configures the serial connection, using the
+    settings in the dictionary supplied on initialization.
+    The serial connection is not opened here.
+
+    Args: 
+        None
+    Returns:
+        ser: The configured serial connection as an object.
+    """
     def __constructSerialConnection(self):
         ser = serial.serial_for_url(self.settings['port'], do_not_open=True)
         ser.baudrate = int(self.settings['baudrate'])
@@ -76,7 +87,19 @@ class SerialScanner(Scanner):
         ser.stopbits = int(self.settings['stopbits'])
         ser.timeout = None
         return ser
-        
+
+    """
+    This function opens the serial connection.
+    After successfully opening the connection, __connectionState 
+    is set to "up" and the callback function is executed.
+    In case of an exception, the function sleeps, to limit 
+    connection attempts to one per second.
+
+    Args: 
+        None
+    Returns:
+        None
+    """
     def __openSerialConnection(self):
         try:
             self.ser = self.__constructSerialConnection()
@@ -89,6 +112,20 @@ class SerialScanner(Scanner):
             time.sleep(1)
             pass
  
+    """
+    This Function tries to read a line from the 
+    scanner while no stop is requested. As long
+    as there is no input from the scanner, 
+    self.ser.readline() is blocking.
+    In case self.ser.readline() throws an 
+    exception, the __connectionState is set to down
+    and the callback function is executed.
+
+    Args: 
+        None
+    Returns:
+        None
+    """
     def __readFromScanner(self):
         while not self.isStopRequested:
             if self.__connectionState == "up":
@@ -103,7 +140,17 @@ class SerialScanner(Scanner):
             else:
                 self.__openSerialConnection()
                 
+    """
+    This Function checks whether there are elements in the queue.
+    In case there are, it fetches the oldest element and returns it.
+    In case there are none, None is returned.
 
+    Args: 
+        None
+    Returns:
+        item:
+            String containing the value of a scanned barcode.
+    """
     def getBarcode(self):
         if self.queue.empty() == False:
             item = self.queue.get(block=True)
