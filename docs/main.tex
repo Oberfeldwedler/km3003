@@ -23,7 +23,7 @@
 \usepackage{xcolor}
 % Code highlighting
 \NewDocumentCommand{\codeword}{v}{%
-\texttt{\textcolor{green}{#1}}%
+\texttt{\textcolor{darkgray}{#1}}%
 }
 
 \usepackage{biblatex}
@@ -105,7 +105,6 @@ Für die Anbindung einer MySQL Datenbank gibt es verschiedene Optionen welche ve
 
 \subsection{Datenbankstruktur}
 
-% TODO: SQL Injection Protection
 % TODO: Struktur der Datenbank
 
 \subsubsection{Maßnahmen zur Verhinderung von Inkonsistenzen und Redundanzen}
@@ -147,6 +146,10 @@ Die Instanz eines Objektes der Klasse MySql verwaltet die Verbindung zur Datenba
 Im Main Loop der Anwendung wird die Funktion \hyperref[func:ensureDatabaseConnection]{ensureDatabaseConnection}  periodisch aufgerufen und damit der aktuelle Verbindungsstatus abgefragt.
 Ist die Verbindung unterbrochen löst die Funktion \hyperref[func:ensureDatabaseConnection]{ensureDatabaseConnection} einen erneuten Verbindungsversuch aus, sodass die Verbindung zur Datenbank automatisch wiederhergestellt wird. Der initiale Verbindungsaufbau funktioniert ebenfalls über diesen Mechanismus.
 
+Im Allgemeinen sind Datenbankanfragen immer nach dem gleichen Schema implementiert. Der Rohbau einer Query steht direkt im Code als String. Variable Elemnte der Abfragen werden vorerst durch den Platzhalter \codeword{%s} repräsentiert. 
+Die Funktion \codeword{execute(query, args)} baut dann aus dem Rohbau der Query und einem Tupel, welches die einzusetzenden Werten enthält, die fertige Query und führt sie aus. 
+Bei diesem Ansatz platziert PyMySQL automatisch Escape-Charcters vor Sonderzeichen in den Argumenten für die Query und ist somit gesichert gegen Injection-Angriffe.
+
 Über die Funktion \hyperref[func:runBarcodeAgainstDatabase]{runBarcodeAgainstDatabase} kann die Datenbank nach einem gescannten Barcode durchsucht werden. Falls eine Entität mit dem Barcode eindeutig identifiziert wurde, wird ein Objekt zurückgegeben, welches alle Informationen zur Entität enthält. Hierbei ist es unerheblich ob es sich bei der Entität um einen Nutzer oder ein Produkt handelt.
 
 Wie in Kapitel \ref{sec:measures_to_prevent_inconsistencies_and_redundancies} erklärt, wurde bei der Konzeption dieses Projektes explizit darauf geachtet, die Datenbank als Single Source of Truth zu respektieren. Deswegen wird das Guthaben eines Users bei jeder Verwendung über die Funktion \hyperref[func:getUserBalance]{getUserBalance} aus der Datenbank geladen.
@@ -154,9 +157,6 @@ Wie in Kapitel \ref{sec:measures_to_prevent_inconsistencies_and_redundancies} er
 Die Guthaben der Nutzer werden über die Funktion calculateAndUpdateUserBalance lokal durch Addition aller Einzahlungen und Subtraktion aller Einkäufe berechnet.
 
 Da sichergestellt ist, dass die Daten in der Datenbank immer aktuell sind, könnten in der Zukunft auch weitere Kühlschrankmanager oder Clients zur Administration gleichzeitig eingesetzt werden.
-
-Im Allgemeinen sind Datenbankanfragen immer nach dem gleichen Schema implementiert. Der Rohbau einer Query steht direkt im Code als String. Variable Elemnte der Abfragen werden vorerst durch Platzhalter repräsentiert. Die Funktion \codeword{execute(query, args)} baut dann aus dem Rohbau der Query und einem Tupel  mit den einzusetzenden Werten die fertige Query und führt sie aus.
-
 
 \subsubsection{Scanner}
 Der Scanner wurde mit einem Producer-Consumer Modell realisiert. 
@@ -181,6 +181,11 @@ Da in der Anwendung auch Emojis unterstützt werden, muss als Encoding UTF-8 spe
 Wie in Kapitel \ref{sec:mysql} erklärt, werden Datenbank-Queries als String mit Platzhaltern gehardcoded. Die Funktion \codeword{execute(query, args)} des Moduls PyMySQL ersetzt dann die Platzhalter mit den richtigen Werten und führt sie aus. Die Funktion \codeword{mogrify(query, args)} besitzt den gleichen Funktionsprototypen, führt jedoch keine Datenbank Transaktion durch. Stattdessen ersetzt \codeword{mogrify(query, args)} die Platzhalter ebenso mit den Werten aus dem Tupel und gibt die fertige Datenbanktransaktion als String zurück, so wie sie von \codeword{execute(query, args)} ausgeführt worden wäre. Dieser String kann dann geloggt werden.
 
 \subsection{Konfiguration}
+Die Konfiguration der Anwendung erfolgt über das Konfig-file \codeword{./km3003.conf}. Die Sprache welche vom Modul \codeword{configparser} verwendet wird, ist sehr stark angelehnt an, aus Microsoft Windows bekannten, \codeword{*.INI} Dateien. 
+
+Es gibt keine optionalen Parameter. Die Konfigurationsdatei muss immer alle Optionen enthalten.
+
+Die vollständige Dokumentation aller Konfigurationsparameter befindet sich im Anhang in Teil \ref{sec:documentation_of_config_parameters}.
 
 
 \section{Deployment}
@@ -206,12 +211,6 @@ python -m pip install pysimplegui pyserial pymysql cryptography
     \item obtain PySimpleGUI Hobbyist license
     \item Setup Windows Task Scheduling to reboot the system periodically
 \end{enumerate}
-
-
-- deployment:
-    surface, ansbile for km3003 standalone
-    cyclical restart windows task scheduler
-    mysql db
 
 \section{Herausforderung bei der Implementierung}
     - wiedreraufbau von Verbindunsabbrüchen (Datenbank und Scanner) zur Laufzeit
@@ -351,8 +350,72 @@ Returns:
 """
 \end{verbatim}
 
+% \section{Dokumentation der Konfigurationsparameter}
+% \codeword{general \ screen_timeout_ms}: Zeit in Millisekunden, bis der Bildschirmschoner aktiviert wird.\\
+% \codeword{general \ message_timeout_ms}: Dauer in Millisekunden, wie lange Nachrichten auf dem Bildschirm angezeigt werden.\\
+% \codeword{general \ theme}: Farbschema des Benutzerinterfaces. Mögliche Werte sind aus der PySimpleGUI Dokumenation zu entnehmen.\\
+% \codeword{general \ font}: Schriftart, die in der Benutzeroberfläche verwendet wird.\\
+% \codeword{general \ font_size}: Schriftgröße in Punkten für die Benutzeroberfläche.\\
+% \codeword{general \ initial_width}: Anfangsbreite des Fensters in Pixeln.\\
+% \codeword{general \ initial_height}: Anfangshöhe des Fensters in Pixeln.\\
+% \codeword{general \ keep_on_top}: Gibt an, ob das Fenster immer im Vordergrund bleiben soll.\\
+% \codeword{general \ logging}: Gibt das loglevel an. Der Wert \codeword{debug} bedeutet, dass detaillierte Debugging-Informationen protokolliert werden.\\
+% \codeword{general \ debug}: Äquivalent zu \codeword{resizable = True}, \codeword{no no_titlebar = False}, \codeword{maximize = False}\\
+% \codeword{general \ resizable}: Gibt an, ob die Größe des Fensters geändert werden kann. \codeword{False} bedeutet, dass das Fenster nicht skalierbar ist.\\
+% \codeword{general \ no_titlebar}: Gibt an, ob das Fenster eine Titelleiste haben soll. \codeword{True} bedeutet, dass keine Titelleiste angezeigt wird.\\
+% \codeword{general \ maximize}: Falls auf \codeword{True} gesetzt, wird das Fenster beim Start maximiert.\\
+% \\
+% \codeword{mysql \ host_address}: Die Adresse des MySQL-Hosts, zu dem eine Verbindung hergestellt werden soll.\\
+% \codeword{mysql \ port_number}: Der Port, über den die Verbindung zum MySQL-Host hergestellt wird.\\
+% \codeword{mysql \ username}: Der Benutzername für die MySQL-Verbindung.\\
+% \codeword{mysql \ password}: Das Passwort für die MySQL-Verbindung.\\
+% \codeword{mysql \ database}: Der Name der MySQL-Datenbank, die verwendet werden soll.\\
+% \\
+% \codeword{serial \ port}: Der COM-Port oder das Gerät, das für serielle Kommunikation verwendet wird. Unter Linux \codeword{/dev/ttyXYZ}\\
+% \codeword{serial \ console_input}: Der Input erfolgt nicht über die serielle Schnittstelle, sondern über die Konsole.\\
+% \codeword{serial \ baudrate}: Die Baudrate für die serielle Kommunikation.\\
+% \codeword{serial \ bytesize}: Die Anzahl der Datenbits pro Zeichen.\\
+% \codeword{serial \ parity}: Gibt das Paritätsbit für die serielle Kommunikation an.\\
+% \codeword{serial \ stopbits}: Die Anzahl der Stopbits für die serielle Kommunikation.\\
 
+\section{Dokumentation der Konfigurationsparameter}
 
+\label{sec:documentation_of_config_parameters}
+\subsection{General}
+\begin{itemize}
+    \item \textbf{\texttt{screen\_timeout\_ms}}: Zeit in Millisekunden, bis der Bildschirmschoner aktiviert wird.
+    \item \textbf{\texttt{message\_timeout\_ms}}: Dauer in Millisekunden, wie lange Nachrichten auf dem Bildschirm angezeigt werden.
+    \item \textbf{\texttt{theme}}: Farbschema des Benutzerinterfaces. Mögliche Werte sind aus der PySimpleGUI Dokumentation zu entnehmen. \cite{ThemesPySimpleGUIDocumentationc}
+    \item \textbf{\texttt{font}}: Schriftart, die in der Benutzeroberfläche verwendet wird.
+    \item \textbf{\texttt{font\_size}}: Schriftgröße in Punkten für die Benutzeroberfläche.
+    \item \textbf{\texttt{initial\_width}}: Anfangsbreite des Fensters in Pixeln.
+    \item \textbf{\texttt{initial\_height}}: Anfangshöhe des Fensters in Pixeln.
+    \item \textbf{\texttt{keep\_on\_top}}: Gibt an, ob das Fenster immer im Vordergrund bleiben soll.
+    \item \textbf{\texttt{logging}}: Gibt das Loglevel an. Der Wert \texttt{debug} bedeutet, dass detaillierte Debugging-Informationen protokolliert werden.
+    \item \textbf{\texttt{debug}}: Bei \texttt{True} äquivalent zu \texttt{resizable = True}, \texttt{no\_titlebar = False}, \texttt{maximize = False}.
+    \item \textbf{\texttt{resizable}}: Gibt an, ob die Größe des Fensters geändert werden kann. \texttt{False} bedeutet, dass das Fenster nicht skalierbar ist.
+    \item \textbf{\texttt{no\_titlebar}}: Gibt an, ob das Fenster eine Titelleiste haben soll. \texttt{True} bedeutet, dass keine Titelleiste angezeigt wird.
+    \item \textbf{\texttt{maximize}}: Falls auf \texttt{True} gesetzt, wird das Fenster beim Start maximiert.
+\end{itemize}
+
+\subsection{MySQL}
+\begin{itemize}
+    \item \textbf{\texttt{host\_address}}: Die Adresse des MySQL-Hosts, zu dem eine Verbindung hergestellt werden soll.
+    \item \textbf{\texttt{port\_number}}: Der Port, über den die Verbindung zum MySQL-Host hergestellt wird.
+    \item \textbf{\texttt{username}}: Der Benutzername für die MySQL-Verbindung.
+    \item \textbf{\texttt{password}}: Das Passwort für die MySQL-Verbindung.
+    \item \textbf{\texttt{database}}: Der Name der MySQL-Datenbank, die verwendet werden soll.
+\end{itemize}
+
+\subsection{Serial}
+\begin{itemize}
+    \item \textbf{\texttt{port}}: Der COM-Port oder das Gerät, das für serielle Kommunikation verwendet wird. Unter Linux \texttt{/dev/ttyXYZ}.
+    \item \textbf{\texttt{console\_input}}: Der Input erfolgt nicht über die serielle Schnittstelle, sondern über die Konsole.
+    \item \textbf{\texttt{baudrate}}: Die Baudrate für die serielle Kommunikation.
+    \item \textbf{\texttt{bytesize}}: Die Anzahl der Datenbits pro Zeichen.
+    \item \textbf{\texttt{parity}}: Gibt das Paritätsbit für die serielle Kommunikation an.
+    \item \textbf{\texttt{stopbits}}: Die Anzahl der Stopbits für die serielle Kommunikation.
+\end{itemize}
 
 \section{Abkürzungsverzeichnis}
 \begin{acronym}[OTH R]
