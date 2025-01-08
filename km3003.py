@@ -251,9 +251,8 @@ while True:
     if database_state_change:
         logger.debug(f"database_state_change: {database_state_change}")
         logger.debug(f"database_active: {database_state}")
-
-    if database_state_change:
-            window.write_event_value('-DATABASE_CONNECTION_EVENT-', database_state)
+        window.write_event_value('-DATABASE_CONNECTION_EVENT-', database_state)
+        continue
     
     if event == "-CHECKOUT-":
         if shopping_cart.checkout():
