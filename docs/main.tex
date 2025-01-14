@@ -29,7 +29,7 @@
 \usepackage{biblatex}
 \addbibresource{./VMCB.bib} %Import the bibliography file
 
-\graphicspath{ {./images/} }
+\graphicspath{ {./resources} }
 
 \author{Samuel Brunner}
 \date{\today}
@@ -121,16 +121,16 @@ Außerdem erfüllt die Datenbank die Normalisierungsanforderungen bis zur \ac{5N
 
 Durch diese Maßnahmen wird eine hohe Datenqualität und Konsistenz sichergestellt, während gleichzeitig Verfügbarkeit der Daten für weitere Verarbeitung maximiert wird.
 
-\subsection{Der Main Loop der Anwendung}
-Der Main Loop der Anwendung 
+\subsection{Die Hauptschleife der Anwendung}
 
+\includegraphics[width=1\linewidth]{main_loop.pdf}
 
 \subsection{Klassen}
 
 \begin{figure}[ht]
-    \includegraphics[width=1\textwidth]{class_diagram.png}
+    \includegraphics[width=1\linewidth]{class_diagram.png}
     \caption{Klassendiagramm von KM3003}
-    \label{fig:gui}
+    \label{fig:class_diagram}
 \end{figure}
 
 \subsubsection{ShoppingCart}
@@ -138,7 +138,7 @@ Die Klasse ShoppingCart bildet das Kernsegment der Anwendung. Im ShoppingCart we
 Alle für den Nutzer auf der Benuteroberfläche verfügbare Funktionen, wurden direkt in den Methoden des ShoppingCart Objektes implementiert. Funktionen, welche Datenbankabfragen erfordern, werden durch weitere Funktionsaufrufe am MySQL-Caller-Objekt initiiert.
 Beim Start des KM3003 wird eine Instanz der Klasse ShoppingCart erstellt welche bis zum Beenden der Anwendung bestehen bleibt.
 
-Objekte der gescannten Produkte oder des gescannten Nutzers, werden im Main-Loop der Anwendungen erstellt und im ShoppingCart Objekt gespeichert.
+Objekte der gescannten Produkte oder des gescannten Nutzers, werden in der Hauptschleife der Anwendungen erstellt und im ShoppingCart Objekt gespeichert.
 
 % \subsection{Testing}
 % Unit tests schreinben mit pyunit test Framework
@@ -147,7 +147,7 @@ Objekte der gescannten Produkte oder des gescannten Nutzers, werden im Main-Loop
 \label{sec:mysql}
 Die Instanz eines Objektes der Klasse MySql verwaltet die Verbindung zur Datenbank und führt alle Operationen durch, in welchen Daten mit der Datenbank ausgetauscht werden. 
 
-Im Main Loop der Anwendung wird die Funktion \hyperref[func:ensureDatabaseConnection]{ensureDatabaseConnection}  periodisch aufgerufen und damit der aktuelle Verbindungsstatus abgefragt.
+Ider hauptschleife der Anwendung wird die Funktion \hyperref[func:ensureDatabaseConnection]{ensureDatabaseConnection}  periodisch aufgerufen und damit der aktuelle Verbindungsstatus abgefragt.
 Ist die Verbindung unterbrochen löst die Funktion \hyperref[func:ensureDatabaseConnection]{ensureDatabaseConnection} einen erneuten Verbindungsversuch aus, sodass die Verbindung zur Datenbank automatisch wiederhergestellt wird. Der initiale Verbindungsaufbau funktioniert ebenfalls über diesen Mechanismus.
 
 Im Allgemeinen sind Datenbankanfragen immer nach dem gleichen Schema implementiert. Der Rohbau einer Query steht direkt im Code als String. Variable Elemnte der Abfragen werden vorerst durch den Platzhalter \codeword{%s} repräsentiert. 
@@ -165,7 +165,7 @@ Da sichergestellt ist, dass die Daten in der Datenbank immer aktuell sind, könn
 \subsubsection{Scanner}
 Der Scanner wurde mit einem Producer-Consumer Modell realisiert. 
 
-Die Funktion \hyperref[func:readFromScanner]{\_\_readFromScanner} wird in einem seperaten Thread ausgeführt und blockiert solange bis ein Barcode erkannt wird. Der Wert des Barcodes wird dann hinten an eine Queue angereiht und im Main Loop der Anwendung über die Funktion \hyperref[func:getBarcode]{getBarcode} konsumiert.
+Die Funktion \hyperref[func:readFromScanner]{\_\_readFromScanner} wird in einem seperaten Thread ausgeführt und blockiert solange bis ein Barcode erkannt wird. Der Wert des Barcodes wird dann hinten an eine Queue angereiht und in der Hauptschleife der Anwendung über die Funktion \hyperref[func:getBarcode]{getBarcode} konsumiert.
 
 Da das Modul pySerial, um den Status der seriellen Schnittstelle zu überprüfen, keine bequeme Ping Funktion wie by PyMySQL bietet, wurde hier ein anderer Ansatz gewählt.
 Bei der Initialisierung des Scanner Objektes wird eine Callback Funktion hinterrlegt, welche bei jeder Änderung des Verbindungsstatus zum Scanner aufgerufen wird.
