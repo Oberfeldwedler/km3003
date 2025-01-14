@@ -5,7 +5,6 @@
 \usepackage{caption}
 \usepackage{float}
 
-
 \usepackage{hyperref}
 \hypersetup{
     colorlinks=true,
@@ -95,7 +94,7 @@ Die Beispielorientierte Dokumentation von PySimpleGUI ermöglicht schnelle erste
 
 \begin{figure}[ht]
     \includegraphics[width=1\textwidth]{sample.jpg}
-    \caption{The \ac{GUI} of KM3003}
+    \caption{Das \ac{GUI} von KM3003}
     \label{fig:gui}
 \end{figure}
 
@@ -122,8 +121,15 @@ Außerdem erfüllt die Datenbank die Normalisierungsanforderungen bis zur \ac{5N
 Durch diese Maßnahmen wird eine hohe Datenqualität und Konsistenz sichergestellt, während gleichzeitig Verfügbarkeit der Daten für weitere Verarbeitung maximiert wird.
 
 \subsection{Die Hauptschleife der Anwendung}
+Die Hauptschleife der Anwendung bildet das funktionale Kernsegment von KM3003. Wie in Abbildung \ref{fig:main_loop_km3003} gezeigt, wird zu Beginn der Hauptschleife für eine Sekunde auf neue Ereignisse gewartet. Im weiteren Verlauf der Hauptschleife, reagiert die Anwendung dann auf diese Ereignisse.
+Neben Eingaben der Benutzer, können auch abgelaufene Timer, Änderungen im Verbindungsstatus zu Peripheriegeräten, oder andere interne Vorgänge Ereignisse auslösen.
+Ist dies der Fall, so werden die von der Anwendung selbst ausgelösten Ereignisse, wiederum in der Hauptschleife mit \codeword{window.write_event_value('-EVENT-', None)} ausgelöst und zu Beginn des nächsten Durchlaufs der Schleife, mit \codeword{event, values = window.read(timeout=1000)}, gelesen und danach verarbeitet.
 
-\includegraphics[width=1\linewidth]{main_loop.pdf}
+\begin{figure}[H]
+    \includegraphics[width=1\linewidth]{main_loop.pdf}
+    \caption{Hauptschleife von KM3003}
+    \label{fig:main_loop_km3003}
+\end{figure}
 
 \subsection{Klassen}
 
@@ -134,7 +140,7 @@ Durch diese Maßnahmen wird eine hohe Datenqualität und Konsistenz sichergestel
 \end{figure}
 
 \subsubsection{ShoppingCart}
-Die Klasse ShoppingCart bildet das Kernsegment der Anwendung. Im ShoppingCart werden Objekte gespeichert, welche die Produkte im Warenkorb und den Nutzer, der sich als letztes eingescannt hat, repräsentieren. Auch eine Instanz der Klassen MySql für die Kommunikation mit dem MySQL-Server wird vom ShoppingCart verwaltet.
+Im ShoppingCart werden Objekte gespeichert, welche die Produkte im Warenkorb und den Nutzer, der sich als letztes eingescannt hat, repräsentieren. Auch eine Instanz der Klassen MySql für die Kommunikation mit dem MySQL-Server wird vom ShoppingCart verwaltet.
 Alle für den Nutzer auf der Benuteroberfläche verfügbare Funktionen, wurden direkt in den Methoden des ShoppingCart Objektes implementiert. Funktionen, welche Datenbankabfragen erfordern, werden durch weitere Funktionsaufrufe am MySQL-Caller-Objekt initiiert.
 Beim Start des KM3003 wird eine Instanz der Klasse ShoppingCart erstellt welche bis zum Beenden der Anwendung bestehen bleibt.
 
@@ -185,12 +191,13 @@ Da in der Anwendung auch Emojis unterstützt werden, muss als Encoding UTF-8 spe
 Wie in Kapitel \ref{sec:mysql} erklärt, werden Datenbank-Queries als String mit Platzhaltern gehardcoded. Die Funktion \codeword{execute(query, args)} des Moduls PyMySQL ersetzt dann die Platzhalter mit den richtigen Werten und führt sie aus. Die Funktion \codeword{mogrify(query, args)} besitzt den gleichen Funktionsprototypen, führt jedoch keine Datenbank Transaktion durch. Stattdessen ersetzt \codeword{mogrify(query, args)} die Platzhalter ebenso mit den Werten aus dem Tupel und gibt die fertige Datenbanktransaktion als String zurück, so wie sie von \codeword{execute(query, args)} ausgeführt worden wäre. Dieser String kann dann geloggt werden.
 
 \subsection{Konfiguration}
-Die Konfiguration der Anwendung erfolgt über das Konfig-file \codeword{./km3003.conf}. Die Sprache welche vom Modul \codeword{configparser} verwendet wird, ist sehr stark angelehnt an, aus Microsoft Windows bekannten, \codeword{*.INI} Dateien. 
+Die Konfiguration der Anwendung erfolgt über das Konfig-file \codeword{./km3003.conf}. Die Sprache welche vom Modul \codeword{configparser} verwendet wird, ist sehr stark angelehnt an, aus Microsoft Windows bekannten, \codeword{*.INI} Dateien.
 
 Es gibt keine optionalen Parameter. Die Konfigurationsdatei muss immer alle Optionen enthalten.
 
-Die vollständige Dokumentation aller Konfigurationsparameter befindet sich im Anhang in Teil \ref{sec:documentation_of_config_parameters}.
+Die vollständige Dokumentation aller Konfigurationsparameter befindet sich im Anhang in Teil \ref{sec:documentation_of_config_parameters}. 
 
+Die Ausdrücke \codeword{true}, \codeword{1}, \codeword{t}, \codeword{y}, \codeword{yes}, \codeword{yeah}, \codeword{yup}, \codeword{ja}, \codeword{jawoll}, \codeword{definitiv} werden als \codeword{True} gewertet. Alles andere als \codeword{False}.
 
 \section{Deployment}
 
@@ -215,9 +222,6 @@ python -m pip install pysimplegui pyserial pymysql cryptography
     \item obtain PySimpleGUI Hobbyist license
     \item Setup Windows Task Scheduling to reboot the system periodically
 \end{enumerate}
-
-\section{Herausforderung bei der Implementierung}
-    - wiedreraufbau von Verbindunsabbrüchen (Datenbank und Scanner) zur Laufzeit
 
 \section{Ausblick und Verbesserungsvorschläge}
     Das kommerzialisierte Lizenzmodell und die auf Anfänger ausgerichtete Dokumentation, machen PySimpleGUI zur schlechtesten Wahl unter den drei diskutierten Frameworks. 
