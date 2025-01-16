@@ -1,0 +1,3 @@
+[submodule "km3003_docs"]
+	path = km3003_docs
+	url = git@gitlab.oth-regensburg.de:EI/fsei/km3003_docs.git
