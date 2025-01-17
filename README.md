@@ -1,6 +1,7 @@
 
 # KM3003
 
+
 ## Description
 Der Kühlschrankmanager im Vertretungszimmer der Fachschaft ersetzt die Strichliste, welche früher am Kühlschrank hing, und die Getränkekäufe der Vereinsmitglieder erfasste.
 
@@ -13,6 +14,10 @@ Der KM3003 erlaubt nun die Identifizierung von Mitgliedern und Produkten über d
 Zusammengefasst ist der KM3003 ein Self-Checkout Point-of-Sale-Gerät mit Touchscreen und Barcode-Scanner.
 
 ![KM3003](resources/km3003.jpg)
+
+## EI Wiki Eintrag
+
+https://ei-wiki.oth-regensburg.de/wiki/K%C3%BChlschrankbuchungssystem_KM3003
 
 ## Installation
 ### Windows
