@@ -1,6 +1,7 @@
 
 # KM3003
 
+Die gesamte Dokumenation, inklusive der Abschlusspräsentation und Datenbank Creationstatements wurde in das submodul km3003_docs ausgelagert.
 
 ## Description
 Der Kühlschrankmanager im Vertretungszimmer der Fachschaft ersetzt die Strichliste, welche früher am Kühlschrank hing, und die Getränkekäufe der Vereinsmitglieder erfasste.
