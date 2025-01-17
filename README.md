@@ -12,7 +12,7 @@ Der KM3003 erlaubt nun die Identifizierung von Mitgliedern und Produkten über d
 
 Zusammengefasst ist der KM3003 ein Self-Checkout Point-of-Sale-Gerät mit Touchscreen und Barcode-Scanner.
 
-![KM3003](km3003_docs/presentation/20250114_151315.jpg?ref_type=heads)
+![KM3003](resources/km3003.jpg)
 
 ## Installation
 ### Windows
