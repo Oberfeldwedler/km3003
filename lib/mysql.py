@@ -85,7 +85,6 @@ class MySql:
         query = ("SELECT * FROM users WHERE id = (SELECT user_id FROM `user-barcodes` WHERE barcode=%s)")
 
         try:
-
             logger.debug(self.dictCursor.mogrify(query, ( barcode, ) ))
             self.dictCursor.execute(query, ( barcode, ) )
             rowCount = self.dictCursor.rowcount
@@ -100,13 +99,14 @@ class MySql:
             self.connection.rollback()
             logger.error("Error during SELECT from table USER:")
             logger.error(err)
+        except Exception as err:
+            logger.error(err)
         return None
         
     def getProductFromDatabase(self, barcode):
         query = ("SELECT * FROM products WHERE barcode=%s")
         
         try:
-
             logger.debug(self.dictCursor.mogrify(query, ( barcode, ) ))
             self.dictCursor.execute(query, ( barcode, ) )
             rowCount = self.dictCursor.rowcount
@@ -120,7 +120,8 @@ class MySql:
         except MySqlDataError as err:
             logger.error("Error during SELECT from table USER")
             logger.error(err)
-            
+        except Exception as err:
+            logger.error(err)
         return None
 
 
