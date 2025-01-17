@@ -1,8 +1,8 @@
 import PySimpleGUI as sg
 
 class User:
-    def __init__(self, barcode, first_name, last_name, emoji):
-        self.barcode = barcode
+    def __init__(self, id, first_name, last_name, emoji):
+        self.id = id
         self.first_name = first_name
         self.last_name = last_name
         self.emoji = emoji
@@ -10,8 +10,8 @@ class User:
 class Product:
     sequential_product_row_counter = 0
 
-    def __init__(self, barcode, name, price, brand):
-        self.barcode = barcode
+    def __init__(self, id, name, price, brand):
+        self.id = id
         self.name = name
         self.price = price
         self.brand = brand

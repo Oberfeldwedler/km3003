@@ -82,7 +82,8 @@ class MySql:
         return self.__connectionState, connectionStateChanged
 
     def getUserFromDatabase(self, barcode):
-        query = ("SELECT * FROM users WHERE barcode=%s")
+        query = ("SELECT * FROM users WHERE id = (SELECT user_id FROM `user-barcodes` WHERE barcode=%s)")
+
         try:
 
             logger.debug(self.dictCursor.mogrify(query, ( barcode, ) ))
@@ -91,7 +92,7 @@ class MySql:
             
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
-                return classes.User(barcode, dataDict['first_name'], dataDict['last_name'], dataDict['emoji'])
+                return classes.User(dataDict['id'], dataDict['first_name'], dataDict['last_name'], dataDict['emoji'])
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")
             self.connection.commit()
@@ -103,6 +104,7 @@ class MySql:
         
     def getProductFromDatabase(self, barcode):
         query = ("SELECT * FROM products WHERE barcode=%s")
+        
         try:
 
             logger.debug(self.dictCursor.mogrify(query, ( barcode, ) ))
@@ -111,7 +113,7 @@ class MySql:
             
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
-                return classes.Product(barcode, dataDict['name'], dataDict['sell_price'], dataDict['brand'])
+                return classes.Product(dataDict['id'], dataDict['name'], dataDict['sell_price'], dataDict['brand'])
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique product! ({rowCount} results)")
             self.connection.commit()
@@ -159,9 +161,9 @@ class MySql:
         None if no matching user is found in the database.
     """
     def getUserBalance(self, user):
-        get_user_balance = ("SELECT current_balance FROM users WHERE barcode=%s")
+        get_user_balance = ("SELECT current_balance FROM users WHERE id=%s")
         try:
-            self.dictCursor.execute(get_user_balance, ( user.barcode, ) ) 
+            self.dictCursor.execute(get_user_balance, ( user.id, ) ) 
             dataDict = self.dictCursor.fetchone()
             self.connection.commit()
             return dataDict['current_balance']
@@ -172,22 +174,22 @@ class MySql:
             return None  
 
     def calculateUserBalance(self, user):
-        get_purchases = ("SELECT price_then FROM purchases WHERE user_barcode=%s")
-        get_deposits = ("SELECT amount FROM deposits WHERE user_barcode=%s")
+        get_purchases = ("SELECT price_then FROM purchases WHERE user_id=%s")
+        get_deposits = ("SELECT amount FROM deposits WHERE user_id=%s")
         
         sum_of_purchases = 0
         sum_of_deposits = 0
         
         try:
 
-            logger.debug(self.dictCursor.mogrify(get_purchases, ( user.barcode, )))
-            self.dictCursor.execute(get_purchases, ( user.barcode, ) ) 
+            logger.debug(self.dictCursor.mogrify(get_purchases, ( user.id, )))
+            self.dictCursor.execute(get_purchases, ( user.id, ) ) 
 
             for purchase in self.dictCursor:
                 sum_of_purchases += purchase["price_then"]
                 
-            logger.debug(self.dictCursor.mogrify(get_deposits, ( user.barcode, )))
-            self.dictCursor.execute(get_deposits, ( user.barcode, ) )
+            logger.debug(self.dictCursor.mogrify(get_deposits, ( user.id, )))
+            self.dictCursor.execute(get_deposits, ( user.id, ) )
 
             for deposit in self.dictCursor:
                 sum_of_deposits += deposit["amount"]
@@ -204,12 +206,12 @@ class MySql:
 
     def updateUserBalance(self, user, new_balance):
         updateBalance = ( 
-            "UPDATE users SET current_balance=%s WHERE (barcode=%s)"
+            "UPDATE users SET current_balance=%s WHERE (id=%s)"
         )
-        logger.debug(self.dictCursor.mogrify(updateBalance, ( new_balance, user.barcode ) ))
+        logger.debug(self.dictCursor.mogrify(updateBalance, ( new_balance, user.id ) ))
         try:
             self.connection.begin()
-            self.dictCursor.execute(updateBalance, ( new_balance, user.barcode ) )
+            self.dictCursor.execute(updateBalance, ( new_balance, user.id ) )
             self.connection.commit()
             return True
         except Exception as err:
@@ -247,11 +249,11 @@ class MySql:
 
     def insertPurchase(self, product, user):
         insertPurchase = (
-            "INSERT INTO purchases (product_barcode, user_barcode, price_then) VALUES (%s, %s, %s)"
+            "INSERT INTO purchases (product_id, user_id, price_then) VALUES (%s, %s, %s)"
         )
         try:
-            logger.debug(self.dictCursor.mogrify(insertPurchase, ( product.barcode, user.barcode, product.price ) ))
-            self.dictCursor.execute(insertPurchase, ( product.barcode, user.barcode, product.price ) )
+            logger.debug(self.dictCursor.mogrify(insertPurchase, ( product.id, user.id, product.price ) ))
+            self.dictCursor.execute(insertPurchase, ( product.id, user.id, product.price ) )
             return True
         except Exception as err:
             self.connection.rollback()
