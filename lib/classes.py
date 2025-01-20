@@ -1,11 +1,12 @@
 import PySimpleGUI as sg
 
 class User:
-    def __init__(self, id, first_name, last_name, emoji):
+    def __init__(self, id, first_name, last_name, emoji, price_factor):
         self.id = id
         self.first_name = first_name
         self.last_name = last_name
         self.emoji = emoji
+        self.price_factor = price_factor
 
 class Product:
     sequential_product_row_counter = 0
