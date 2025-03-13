@@ -279,7 +279,7 @@ while True:
             shopping_cart.user = result
             current_balance = database_caller.calculateAndUpdateUserBalance(result)
             if result.price_factor != 1.0:
-                window['-MEMBER-'].update(f"{result.first_name} {result.last_name} {result.emoji}  PF: {result.price_factor}€  Guthaben: {current_balance}€")
+                window['-MEMBER-'].update(f"{result.first_name} {result.last_name} {result.emoji}  PF: {result.price_factor}  Guthaben: {current_balance}€")
             else:
                 window['-MEMBER-'].update(f"{result.first_name} {result.last_name} {result.emoji}  Guthaben: {current_balance}€")
             logger.debug(f"User '{result.first_name} {result.last_name} {result.emoji}' was detected!")
