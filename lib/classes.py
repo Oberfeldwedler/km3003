@@ -1,4 +1,4 @@
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 
 class User:
     def __init__(self, id, first_name, last_name, emoji, price_factor):

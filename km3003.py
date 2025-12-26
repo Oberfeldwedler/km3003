@@ -1,7 +1,7 @@
 import re
 import configparser
 import logging.handlers
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 
 from lib import mysql
 from lib import classes
@@ -52,12 +52,17 @@ product_list = [
 
 member_row = [[ sg.Text('Bitte Ausweis scannen', key='-MEMBER-') ]]
 
-body = [
-    [ product_list ],
+# body = [
+#     [ product_list ],
+#     [ sg.VPush() ], 
+#     [ sg.HorizontalSeparator() ],
+#     [ sum_row ]
+# ]
+
+body = product_list + [
     [ sg.VPush() ], 
-    [ sg.HorizontalSeparator() ],
-    [ sum_row ]
-]
+    [ sg.HorizontalSeparator() ]
+] + sum_row
 
 footer = [[ 
     sg.Button('Zurücksetzen', 

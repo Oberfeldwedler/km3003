@@ -1,0 +1,7 @@
+FreeSimpleGUI 
+pyserial 
+pymysql 
+cryptography
+
+# pywebview[qt]
+# nicegui
