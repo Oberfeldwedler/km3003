@@ -1,12 +1,18 @@
-docs/main.pdf
-
-**.pyc
 km3003.conf
 
-logs/**
-build/**
-dist/**
-km3003.spec
+# --- uv / Python Virtual Environments ---
+# The .venv folder contains OS-specific binaries and should NEVER be committed.
+.venv/
+venv/
+env/
+ENV/
+
+# --- Python Artifacts ---
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
 
 # Ansible runtime and backups
 *.original
@@ -19,6 +25,13 @@ km3003.spec
 **/roles/*
 **/disabled
 **/credentials
+
+# latex
+docs/main.pdf
+logs/**
+build/**
+dist/**
+km3003.spec
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
