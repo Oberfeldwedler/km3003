@@ -70,8 +70,7 @@ class SerialScanner(Scanner):
 
 
     """
-    This function configures the serial connection, using the
-    settings in the dictionary supplied on initialization.
+    This function configures the serial connection, using the settings in the dictionary supplied on initialization.
     The serial connection is not opened here.
 
     Args: 
@@ -90,10 +89,8 @@ class SerialScanner(Scanner):
 
     """
     This function opens the serial connection.
-    After successfully opening the connection, __connectionState 
-    is set to "up" and the callback function is executed.
-    In case of an exception, the function sleeps, to limit 
-    connection attempts to one per second.
+    After successfully opening the connection, __connectionState is set to "up" and the callback function is executed.
+    In case of an exception, the function sleeps, to limit connection attempts to one per second.
 
     Args: 
         None
@@ -113,13 +110,9 @@ class SerialScanner(Scanner):
             pass
  
     """
-    This Function tries to read a line from the 
-    scanner while no stop is requested. As long
-    as there is no input from the scanner, 
-    self.ser.readline() is blocking.
-    In case self.ser.readline() throws an 
-    exception, the __connectionState is set to down
-    and the callback function is executed.
+    This Function tries to read a line from the scanner while no stop is requested. 
+    As long as there is no input from the scanner, self.ser.readline() is blocking.
+    In case self.ser.readline() throws an exception, the __connectionState is set to down and the callback function is executed.
 
     Args: 
         None
@@ -130,7 +123,7 @@ class SerialScanner(Scanner):
         while not self.isStopRequested:
             if self.__connectionState == "up":
                 try:
-                    line = self.ser.readline().decode()
+                    line = self.ser.readline().decode().strip()
                     self.queue.put(line, block=True, timeout=None)
                 except Exception as e:
                     logger.error(f"Cannot read from serial device!")
