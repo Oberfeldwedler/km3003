@@ -54,7 +54,7 @@ class ConsoleScanner(Scanner):
         return "up"
     
     def close(self) -> None:
-        self.isStopRequested = False
+        self.isStopRequested = True
 
 class SerialScanner(Scanner):
 
@@ -84,7 +84,7 @@ class SerialScanner(Scanner):
         ser.bytesize = int(self.settings['bytesize'])
         ser.parity = self.settings['parity']
         ser.stopbits = int(self.settings['stopbits'])
-        ser.timeout = None
+        ser.timeout = 1
         return ser
 
     """

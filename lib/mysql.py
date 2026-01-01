@@ -91,7 +91,7 @@ class MySql:
             
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
-                return classes.User(dataDict['id'], dataDict['first_name'], dataDict['last_name'], dataDict['emoji'], dataDict['price_factor'])
+                return classes.User(dataDict['id'], dataDict['first_name'], dataDict['last_name'], dataDict['emoji'], dataDict['price_factor'], self.calculateAndUpdateUserBalance)
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")
             self.connection.commit()
