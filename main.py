@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import logging
 import asyncio
 import configparser
@@ -50,7 +51,11 @@ file_handler.setFormatter(formatter)
 
 # Event Handler - Only for events with human interaction
 event_handler = logging.handlers.RotatingFileHandler(
-    EVENT_LOG, maxBytes=1048576, backupCount=10, delay=True
+    EVENT_LOG, 
+    maxBytes=1048576, 
+    backupCount=10, 
+    encoding='utf-8',
+    delay=True 
 )
 event_handler.setFormatter(logging.Formatter("%(asctime)s,%(message)s"))
 
@@ -63,6 +68,10 @@ root_logger.handlers.clear()
 # Add the file handler to root so it captures everything (App + Libraries)
 file_handler.setLevel(general_settings_dict.get("logging", "INFO").upper())
 root_logger.addHandler(file_handler)
+
+# Configure the stderr as utf-8
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
 
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
@@ -164,39 +173,26 @@ def scannerStateChangeCallback(newScannerState):
     pass
 
 def processBarcode(barcode):
-    if barcode:
-        result = database_caller.runBarcodeAgainstDatabase(barcode)
-        if isinstance(result, classes.User):
-            shopping_cart.addUser = result
+    if not barcode:
+        return
+    
+    result = database_caller.runBarcodeAgainstDatabase(barcode)
 
-            if hasattr(main_page.member_container, 'empty_message') and main_page.member_container.empty_message:
-                main_page.member_container.empty_message.delete()
-                main_page.member_container.empty_message = None
+    if isinstance(result, classes.User):
+        shopping_cart.addUser(result)
+        logger.info(f"User '{result.first_name} {result.last_name} {result.emoji}' was detected!")
+        logger_event.info(f"User '{result.first_name} {result.last_name} {result.emoji}' was detected!")
 
-            main_page.member_container.clear()
+    elif isinstance(result, classes.Product):
+        shopping_cart.addProduct(result)
+        logger.info(f"Product '{result.brand} {result.name}' was detected!")
+        logger_event.info(f"Product '{result.brand} {result.name}' was detected!")
 
-            with main_page.member_container:
-                result.generateRow()
-
-            logger.info(f"User '{result.first_name} {result.last_name} {result.emoji}' was detected!")
-            logger_event.info(f"User '{result.first_name} {result.last_name} {result.emoji}' was detected!")
-        elif isinstance(result, classes.Product):
-            shopping_cart.addProduct(result)
-
-            if main_page.cart_container.empty_message:
-                main_page.cart_container.empty_message.delete()
-                main_page.cart_container.empty_message = None
-
-            with main_page.cart_container:
-                result.generateRow(shopping_cart.handleCartRemoval)
-
-            logger.info(f"Product '{result.brand} {result.name}' was detected!")
-            logger_event.info(f"Product '{result.brand} {result.name}' was detected!")
-        else:
-            logger.info(f"Unknown barcode {barcode} was scanned!")
-            logger_event.info(f"Unknown barcode {barcode} was scanned!")
-            ui.notify('Unbekannter Barcode', type='negative', classes='text-2xl q-pa-lg font-bold')
-            pass
+    else:
+        logger.info(f"Unknown barcode {barcode} was scanned!")
+        logger_event.info(f"Unknown barcode {barcode} was scanned!")
+        ui.notify('Unbekannter Barcode', type='negative', classes='text-2xl q-pa-lg font-bold')
+        pass
 
 def scanner_poller():
     barcode = scanner_instance.getBarcode()
@@ -204,22 +200,25 @@ def scanner_poller():
         logger.info(f"New barcode was scanned: {barcode}")
         processBarcode(barcode)
 
-
 # ====================================================================
 # Buttons
 # ====================================================================
 
-def reset():
-    shopping_cart.reset()
+def handle_checkout():
+    if shopping_cart.checkout():
+        ui.notify('Buchung erfolgreich!', 
+                type='positive', 
+                classes='text-2xl q-pa-lg font-bold')
+    else:
+        ui.notify('Buchung fehlgeschlagen! Bitte Eingaben prüfen.', 
+                type='negative',
+                classes='text-2xl q-pa-lg font-bold')
 
-def checkout():
-    # if shopping_cart.checkout():
-    #     user_balance = database_caller.getUserBalance(shopping_cart.getUser())
-    #     window.write_event_value('-CHECKOUT_EVENT-', user_balance)
-    # else:
-    #     window.write_event_value('-CHECKOUT_EVENT-', None)
-    # reset()
-    pass
+def handle_reset():
+    shopping_cart.reset()
+    ui.notify('Warenkorb wurde zurückgesetzt!', 
+            type='warning', 
+            classes='text-2xl q-pa-lg font-bold')
 
 
 # ====================================================================
@@ -257,6 +256,7 @@ def main_page():
                 .props(f':thumb-style="{custom_thumb_style}" :bar-style="{custom_bar_style}" visible'):
 
                 main_page.cart_container = ui.column().classes('w-full gap-2 p-1 pr-10') # pr-4 schafft Platz für den breiten Scrollbar
+                
                 with main_page.cart_container:
                     main_page.cart_container.empty_message = ui.label("Dein Warenkorb ist leer.").classes('text-grey-7 pt-0')
 
@@ -269,9 +269,9 @@ def main_page():
 
         # Buttons
         with ui.row().classes('w-full gap-4 items-end'):
-            ui.button("ZURÜCKSETZEN", color='red', icon='refresh') \
+            ui.button("ZURÜCKSETZEN", color='red', icon='refresh', on_click=handle_reset) \
                 .classes('flex-[1] h-20 text-base font-bold rounded-xl opacity-80')
-            ui.button("JETZT BUCHEN", color='primary', icon='check_circle') \
+            ui.button("JETZT BUCHEN", color='primary', icon='check_circle', on_click=handle_checkout) \
                 .classes('flex-[4] h-20 text-2xl font-bold rounded-xl shadow-lg')
         
         # Simulator for scanner input (hidden by default)
@@ -308,36 +308,52 @@ def main_page():
 
 def update_ui_display():
     """
-    Refreshes all dynamic UI elements based on the current shopping_cart state.
+    Central place for all UI changes. Synchronizes the UI with the shopping_cart data.
     """
-    # Manage the "Empty Cart" message
-    if shopping_cart.empty():
-        # If the container is empty and message isn't there, add it
-        if not hasattr(main_page, 'empty_message') or main_page.cart_container.empty_message is None:
-            with main_page.cart_container:
-                main_page.cart_container.empty_message = ui.label("Dein Warenkorb ist leer.").classes('text-grey-7 pt-0')
-    else:
-        # If there are items, delete the empty message if it exists
-        if hasattr(main_page, 'empty_message') and main_page.cart_container.empty_message:
-            main_page.cart_container.empty_message.delete()
-            main_page.cart_container.empty_message = None
+    update_member_container()
+    update_cart_container()
+    update_total_checkoutsum()
 
-    total = shopping_cart.calculateTotalCheckoutSum()
-    total_text = f"{total:.2f} €"
+
+
+def update_member_container():
+    """
+    Central place for all UI changes. Synchronizes the UI with the shopping_cart data.
+    """
+    main_page.member_container.clear()
     user = shopping_cart.getUser()
-    if user:
-        logger.debug(f"{user.price_factor}")
-    # if user and user.price_factor != 1.0:
-        discounted = total * user.price_factor
-        total_text = f"{total:.2f}€ × {user.price_factor} = {discounted:.2f}€"
-        
-    main_page.total_checkout_sum.set_text(total_text)
+    with main_page.member_container:
+        if user:
+            user.generateRow()
+        else:
+            ui.label("Bitte Ausweis scannen").classes('text-grey-7 pt-0')
+
+def update_cart_container():
+    main_page.cart_container.clear()
+
+    user = shopping_cart.getUser()
+    factor = user.price_factor if user else 1.0
+
+    if shopping_cart.empty():
+        with main_page.cart_container:
+            ui.label("Dein Warenkorb ist leer.").classes('text-grey-7 pt-0')
+    else:
+        with main_page.cart_container:
+            for product in shopping_cart.getProducts():
+                product.generateRow(shopping_cart.handleCartRemoval, factor)
+
+def update_total_checkoutsum():
+    subtotal = shopping_cart.calculateTotalCheckoutSum()
+    user = shopping_cart.getUser()
+    factor = user.price_factor if user else 1.0
+    total = subtotal * factor
+    main_page.total_checkout_sum.set_text(f'{total:.2f} €')
 
 # Protected Entry Point
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run(
         title='KM3004',
-        reload=True,
+        reload=False,
         # Prevent the reloader from watching the log files to avoid restart loops
         uvicorn_reload_excludes=f'{LOG_DIR}/*, *.log'
     )
