@@ -96,9 +96,10 @@ system_status = {"db": "up", "scanner": "up", "error_message": ""}
 
 async def backgroundHealthCheck():
     """Läuft als eigenständiger Hintergrund-Task."""
+    loop = asyncio.get_running_loop() # Get the loop once
     while True:
         try:
-            checkSystemHealth()
+            await loop.run_in_executor(None, checkSystemHealth)
         except Exception as e:
             logger.error(f"Fehler im Health-Check: {e}")
         
