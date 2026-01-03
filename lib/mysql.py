@@ -184,28 +184,25 @@ class MySql:
             logger.error(err)
             return None  
 
+
+
+
     def calculateUserBalance(self, user):
-        get_purchases = ("SELECT price_then, price_factor_then FROM purchases WHERE user_id=%s")
-        get_deposits = ("SELECT amount FROM deposits WHERE user_id=%s")
-        
-        sum_of_purchases = 0
-        sum_of_deposits = 0
+        get_sum_purchases = ("SELECT SUM(price_then * price_factor_then) AS total_spent FROM purchases WHERE user_id = %s;")
+        get_sum_deposits = ("SELECT SUM(amount) AS total_deposited FROM deposits WHERE user_id = %s;")
         
         try:
 
-            logger.debug(self.dictCursor.mogrify(get_purchases, ( user.id, )))
-            self.dictCursor.execute(get_purchases, ( user.id, ) ) 
+            logger.debug(self.dictCursor.mogrify(get_sum_purchases, ( user.id, )))
+            self.dictCursor.execute(get_sum_purchases, ( user.id, ) ) 
+            result_purchases = self.dictCursor.fetchone()
+            total_spent = result_purchases['total_spent'] if result_purchases['total_spent'] else 0.0
 
-            for purchase in self.dictCursor:
-                price = float(purchase["price_then"])
-                factor = float(purchase["price_factor_then"])
-                sum_of_purchases += (price * factor)
-                
-            logger.debug(self.dictCursor.mogrify(get_deposits, ( user.id, )))
-            self.dictCursor.execute(get_deposits, ( user.id, ) )
+            logger.debug(self.dictCursor.mogrify(get_sum_deposits, ( user.id, )))
+            self.dictCursor.execute(get_sum_deposits, ( user.id, ) )
+            result_deposits = self.dictCursor.fetchone()
+            total_deposited = result_deposits['total_deposited'] if result_deposits['total_deposited'] else 0.0
 
-            for deposit in self.dictCursor:
-                sum_of_deposits += float(deposit["amount"])
             self.connection.commit()
                 
         except Exception as err:
@@ -214,8 +211,8 @@ class MySql:
             logger.error(err)
             return None
         
-        new_balance = sum_of_deposits - round(sum_of_purchases, 2)
-        return float(new_balance)
+        new_balance = float(total_deposited) -  float(total_spent)
+        return float(round(new_balance, 2))
 
     def updateUserBalance(self, user, new_balance):
         updateBalance = ( 
