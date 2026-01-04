@@ -158,32 +158,7 @@ class MySql:
             logger.warning(f"Barcode {barcode} is neither user nor product!")
             return None
 
-
-    """
-    Fetches the current user_balance from the database.
-    Args:
-        user: An instance if a user oject.
-    Returns:
-        user_balance: The current balance of the users.
-        None if no matching user is found in the database.
-    """
-    def getUserBalance(self, user):
-        get_user_balance = ("SELECT current_balance FROM users WHERE id=%s")
-        try:
-            self.dictCursor.execute(get_user_balance, ( user.id, ) ) 
-            dataDict = self.dictCursor.fetchone()
-            self.connection.commit()
-            return float(dataDict['current_balance'])
-        except Exception as err:
-            self.connection.rollback()
-            logger.error("Failed to get user balance:")
-            logger.error(err)
-            return None  
-
-
-
-
-    def calculateUserBalance(self, user):
+    def calculateAndUpdateUserBalance(self, user):
         get_sum_purchases = ("SELECT SUM(price_then * price_factor_then) AS total_spent FROM purchases WHERE user_id = %s;")
         get_sum_deposits = ("SELECT SUM(amount) AS total_deposited FROM deposits WHERE user_id = %s;")
         update_balance = ("UPDATE users SET current_balance=%s WHERE (id=%s)")
