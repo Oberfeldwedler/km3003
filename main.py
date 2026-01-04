@@ -337,7 +337,8 @@ def update_member_container():
     user = shopping_cart.getUser()
     with main_page.member_container:
         if user:
-            user.generateRow()
+            balance = database_caller.calculateAndUpdateUserBalance(user)
+            user.generateRow(balance)
         else:
             ui.label("Bitte Ausweis scannen").classes('text-grey-7 pt-0')
 

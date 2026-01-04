@@ -5,16 +5,14 @@ logger = logging.getLogger(__name__)
 logger_event = logging.getLogger("event")
 
 class User:
-    def __init__(self, id, first_name, last_name, emoji, price_factor, getCurrentBalanceCallback):
+    def __init__(self, id, first_name, last_name, emoji, price_factor):
         self.id = id
         self.first_name = first_name
         self.last_name = last_name
         self.emoji = emoji
         self.price_factor = float(price_factor)
-        self.getCurrentBalanceCallback = getCurrentBalanceCallback
 
-    def generateRow(self):
-        balance = self.getCurrentBalanceCallback(self)
+    def generateRow(self, balance):
 
         name = f"{self.emoji} {self.first_name} {self.last_name} {self.emoji}"
         
@@ -64,11 +62,6 @@ class ShoppingCart:
 
     def getUser(self):
         return self.__user
-
-    def refreshUser(self):
-        if self.__user:
-            self.__user = self.__database_caller.getUserFromDatabase(self.__user.barcode)
-            self.uiUpdateCallback()
     
     def addUser(self, user):
         self.__user=user
