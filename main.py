@@ -191,11 +191,11 @@ def barcodeScannedCallback(barcode):
     This function runs in the Scanner Thread.
     It tells the Main Event Loop: "Please run processBarcode(barcode) as soon as you can."
     """
-    loop = asyncio.get_running_loop()
-    # if main_loop and main_loop.is_running():
-    loop.call_soon_threadsafe(processBarcode, barcode)
-    # else:
-    #     logger.error("Main event loop is not available!")
+  
+    if main_loop and main_loop.is_running():
+        main_loop.call_soon_threadsafe(processBarcode, barcode)
+    else:
+        logger.error("Main event loop is not available!")
 
 def processBarcode(barcode):
     if not barcode:
