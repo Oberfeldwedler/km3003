@@ -86,7 +86,6 @@ logger_event.setLevel(logging.INFO)
 
 logger = logging.getLogger(__name__)
 
-
 # ====================================================================
 # System health
 # ====================================================================
@@ -123,7 +122,6 @@ def checkSystemHealth():
     system_status["error_message"] = " & ".join(errors)
 
 
-
 # ====================================================================
 # Lifecycle events and other init tasks
 # ====================================================================
@@ -131,9 +129,12 @@ def checkSystemHealth():
 database_caller = None
 shopping_cart = None
 scanner_instance = None
+main_loop = None
 
 def onStartup():
-    global database_caller, shopping_cart, scanner_instance
+    global database_caller, shopping_cart, scanner_instance, main_loop
+
+    main_loop = asyncio.get_running_loop()
 
     if os.path.exists(LOG_FILE):
         try:
@@ -146,19 +147,17 @@ def onStartup():
             pass
 
     if str2bool(serial_settings_dict.get('console_input', 'False')):
-        scanner_instance = scanner.ConsoleScanner(serial_settings_dict)
+        scanner_instance = scanner.ConsoleScanner(serial_settings_dict, barcodeScannedCallback)
         logger.warning("Console reader enabled! Barcode reader will not work!")
         logger.warning("  Set  [serial]/console_input to False to reenable the barcode reader!")
     else:
-        scanner_instance = scanner.SerialScanner(serial_settings_dict, scannerStateChangeCallback)
+        scanner_instance = scanner.SerialScanner(serial_settings_dict, scannerStateChangeCallback, barcodeScannedCallback)
 
     database_caller = mysql.MySql(mysql_settings_dict)
     database_caller.establishConnection()
     shopping_cart = classes.ShoppingCart(database_caller, update_ui_display)
 
     asyncio.create_task(backgroundHealthCheck())
-
-    ui.timer(0.1, scanner_poller)
 app.on_startup(onStartup)
 
 def onShutdown():
@@ -171,7 +170,19 @@ app.on_shutdown(onShutdown)
 # Scanner
 # ====================================================================
 def scannerStateChangeCallback(newScannerState):
+    #TODO
     pass
+
+def barcodeScannedCallback(barcode):
+    """
+    This function runs in the Scanner Thread.
+    It tells the Main Event Loop: "Please run processBarcode(barcode) as soon as you can."
+    """
+    loop = asyncio.get_running_loop()
+    # if main_loop and main_loop.is_running():
+    loop.call_soon_threadsafe(processBarcode, barcode)
+    # else:
+    #     logger.error("Main event loop is not available!")
 
 def processBarcode(barcode):
     if not barcode:
@@ -196,6 +207,7 @@ def processBarcode(barcode):
         pass
 
 def scanner_poller():
+    logger.info('scanner_poller')
     barcode = scanner_instance.getBarcode()
     if barcode:
         logger.info(f"New barcode was scanned: {barcode}")

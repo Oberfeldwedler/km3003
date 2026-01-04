@@ -1,5 +1,4 @@
 import time
-import queue
 import serial
 import threading
 
@@ -11,10 +10,7 @@ class Scanner():
     
     def __init__(self, settings: dict) -> None:
         self.settings = settings
-        
-    def getBarcode(self) -> str:
-        raise NotImplementedError()
-    
+   
     def getConnectionState(self) -> bool:
         pass
 
@@ -22,34 +18,24 @@ class Scanner():
         pass
 
 class ConsoleScanner(Scanner):
-    def __init__(self, settings: dict) -> None:
+    def __init__(self, settings: dict, barcodeScannedCallback) -> None:
         super().__init__(settings)
-        
-        self.queue = queue.Queue()
-        
+        self.__barcodeScannedCallback = barcodeScannedCallback
         self.thread = threading.Thread(target=self.__readFromScanner, daemon=True)
         self.isStopRequested = False
         self.thread.start()
-        
  
     def __readFromScanner(self):
         while not self.isStopRequested:
             try:
                 line = input()
-                self.queue.put(line, block=True, timeout=None)    
+                if line:
+                    self.__barcodeScannedCallback(line)
             except Exception as e:
                 logger.error("Cannot read from console!")
                 logger.error(e)
                 time.sleep(0.1)
 
-    
-    def getBarcode(self) -> str:
-        if self.queue.empty() == False:
-            item = self.queue.get(block=True)
-        else:
-            item = None
-        return item
-    
     def getConnectionState(self) -> bool:
         return "up"
     
@@ -58,10 +44,10 @@ class ConsoleScanner(Scanner):
 
 class SerialScanner(Scanner):
 
-    def __init__(self, serialSettingsDict, scannerStateChangeCallback ):
+    def __init__(self, serialSettingsDict, scannerStateChangeCallback, barcodeScannedCallback):
         super().__init__(serialSettingsDict)
-        self.queue = queue.Queue()
         self.__scannerStateChangeCallback = scannerStateChangeCallback
+        self.__barcodeScannedCallback = barcodeScannedCallback
         self.__connectionState = "never"
 
         self.thread = threading.Thread(target=self.__readFromScanner, daemon=True)
@@ -84,7 +70,7 @@ class SerialScanner(Scanner):
         ser.bytesize = int(self.settings['bytesize'])
         ser.parity = self.settings['parity']
         ser.stopbits = int(self.settings['stopbits'])
-        ser.timeout = 1
+        ser.timeout = None
         return ser
 
     """
@@ -102,6 +88,7 @@ class SerialScanner(Scanner):
             self.ser = self.__constructSerialConnection()
             self.ser.open()
             self.__connectionState = "up"
+            logger.info("Connection to scanner established.")
             self.__scannerStateChangeCallback(self.__connectionState)
         except:
             self.__connectionState = "down"
@@ -124,7 +111,8 @@ class SerialScanner(Scanner):
             if self.__connectionState == "up":
                 try:
                     line = self.ser.readline().decode().strip()
-                    self.queue.put(line, block=True, timeout=None)
+                    if line:
+                        self.__barcodeScannedCallback(line)
                 except Exception as e:
                     logger.error(f"Cannot read from serial device!")
                     logger.error(e)
@@ -133,23 +121,7 @@ class SerialScanner(Scanner):
             else:
                 self.__openSerialConnection()
                 
-    """
-    This Function checks whether there are elements in the queue.
-    In case there are, it fetches the oldest element and returns it.
-    In case there are none, None is returned.
-
-    Args: 
-        None
-    Returns:
-        item:
-            String containing the value of a scanned barcode.
-    """
-    def getBarcode(self):
-        if self.queue.empty() == False:
-            item = self.queue.get(block=True)
-        else:
-            item = None
-        return item
+  
     
     def getConnectionState(self) -> bool:
         return self.__connectionState
