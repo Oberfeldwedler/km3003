@@ -190,45 +190,38 @@ class MySql:
     def calculateUserBalance(self, user):
         get_sum_purchases = ("SELECT SUM(price_then * price_factor_then) AS total_spent FROM purchases WHERE user_id = %s;")
         get_sum_deposits = ("SELECT SUM(amount) AS total_deposited FROM deposits WHERE user_id = %s;")
-        
-        try:
+        update_balance = ("UPDATE users SET current_balance=%s WHERE (id=%s)")
 
-            logger.debug(self.dictCursor.mogrify(get_sum_purchases, ( user.id, )))
+        try:
+            self.connection.begin()
+
+            # logger.debug(self.dictCursor.mogrify(get_sum_purchases, ( user.id, )))
             self.dictCursor.execute(get_sum_purchases, ( user.id, ) ) 
             result_purchases = self.dictCursor.fetchone()
+            # Handle case where SUM returns None (NULL)
             total_spent = result_purchases['total_spent'] if result_purchases['total_spent'] else 0.0
 
-            logger.debug(self.dictCursor.mogrify(get_sum_deposits, ( user.id, )))
+            # logger.debug(self.dictCursor.mogrify(get_sum_deposits, ( user.id, )))
             self.dictCursor.execute(get_sum_deposits, ( user.id, ) )
             result_deposits = self.dictCursor.fetchone()
+            # Handle case where SUM returns None (NULL)
             total_deposited = result_deposits['total_deposited'] if result_deposits['total_deposited'] else 0.0
 
+            new_balance = float(total_deposited) -  float(total_spent)
+            new_balance = float(round(new_balance, 2))
+
+            # logger.debug(self.dictCursor.mogrify(update_balance_query, (new_balance, user.id)))
+            self.dictCursor.execute(update_balance, ( new_balance, user.id ) )
+
             self.connection.commit()
+
+            return new_balance
                 
         except Exception as err:
             self.connection.rollback()
-            logger.error("Failed to calculate current user balance:")
+            logger.error("Failed to recalculate and update user balance:")
             logger.error(err)
             return None
-        
-        new_balance = float(total_deposited) -  float(total_spent)
-        return float(round(new_balance, 2))
-
-    def updateUserBalance(self, user, new_balance):
-        updateBalance = ( 
-            "UPDATE users SET current_balance=%s WHERE (id=%s)"
-        )
-        logger.debug(self.dictCursor.mogrify(updateBalance, ( new_balance, user.id ) ))
-        try:
-            self.connection.begin()
-            self.dictCursor.execute(updateBalance, ( new_balance, user.id ) )
-            self.connection.commit()
-            return True
-        except Exception as err:
-            self.connection.rollback()
-            logger.error("Failed to update user balance in database:")
-            logger.error(err)
-            return False
 
     def insertCheckout(self, products_list, user):
         new_balance = self.calculateAndUpdateUserBalance(user)
@@ -245,11 +238,6 @@ class MySql:
             self.connection.rollback()
             logger.error("Failed to insert checkout.")
             return False
-
-    def calculateAndUpdateUserBalance(self, user):
-        new_balance = self.calculateUserBalance(user)
-        self.updateUserBalance(user, new_balance)
-        return new_balance
 
     def insertPurchasesList(self, products_list, user):
         success = True
