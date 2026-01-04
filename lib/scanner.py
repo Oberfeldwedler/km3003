@@ -120,8 +120,6 @@ class SerialScanner(Scanner):
                     self.__scannerStateChangeCallback(self.__connectionState)
             else:
                 self.__openSerialConnection()
-                
-  
     
     def getConnectionState(self) -> bool:
         return self.__connectionState
