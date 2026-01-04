@@ -12,21 +12,6 @@ class User:
         self.emoji = emoji
         self.price_factor = float(price_factor)
 
-    def generateRow(self, balance):
-
-        name = f"{self.emoji} {self.first_name} {self.last_name} {self.emoji}"
-        
-        if self.price_factor != 1.0:
-            sub_text = f'Guthaben: {balance:.2f}€ \t\t PF: {self.price_factor}'
-        else:
-            sub_text = f'Guthaben: {balance:.2f}€'
-
-        with ui.column().classes('w-full items-center'):
-            label = ui.label(name).classes('text-3xl font-bold text-primary text-center')
-            ui.label(sub_text).classes('text-lg text-grey-7 text-center')
-        
-        return label
-
 
 class Product:
     sequential_product_row_counter = 0
@@ -39,19 +24,6 @@ class Product:
         self.sequential_product_row_number = Product.sequential_product_row_counter
         Product.sequential_product_row_counter += 1
 
-    def generateRow(self, onDeleteCallback, price_factor):
-        
-        price = self.price * price_factor
-        price_text = f'{price:.2f} €'
-
-        with ui.row().classes('w-full items-center bg-slate-50 px-4 py-3 rounded-lg border border-slate-100') as row:
-            ui.label(f'{self.brand} {self.name}').classes('grow font-medium')
-            ui.label(price_text).classes('px-4 font-bold')
-            ui.button(icon='delete', on_click=lambda: [row.delete(), onDeleteCallback(self)]) \
-                .props('flat round') \
-                .classes('text-gray-400 hover:text-red-500')
-        return row
-    
 
 class ShoppingCart:
     def __init__(self, database_caller, uiUpdateCallback):

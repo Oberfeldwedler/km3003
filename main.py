@@ -10,6 +10,7 @@ from nicegui import ui, app
 from lib import mysql
 from lib import classes
 from lib import scanner
+from lib import ui_components
 
 
 config = configparser.ConfigParser()
@@ -294,11 +295,10 @@ def main_page():
                 main_page.total_checkout_sum = ui.label("0 €").classes('text-4xl font-black text-primary')
 
         # Buttons
-        with ui.row().classes('w-full gap-4 items-end'):
-            ui.button("ZURÜCKSETZEN", color='red', icon='refresh', on_click=handle_reset) \
-                .classes('flex-[1] h-20 text-base font-bold rounded-xl opacity-80')
-            ui.button("JETZT BUCHEN", color='primary', icon='check_circle', on_click=handle_checkout) \
-                .classes('flex-[4] h-20 text-2xl font-bold rounded-xl shadow-lg')
+        ui_components.render_action_buttons(
+                    on_reset_click=handle_reset, 
+                    on_checkout_click=handle_checkout
+                )
         
         # Simulator for scanner input (hidden by default)
         if str2bool(serial_settings_dict.get('console_input', 'False')): 
@@ -353,7 +353,7 @@ def update_member_container():
     with main_page.member_container:
         if user:
             balance = database_caller.calculateAndUpdateUserBalance(user)
-            user.generateRow(balance)
+            ui_components.render_user_header(balance)
         else:
             ui.label("Bitte Ausweis scannen").classes('text-grey-7 pt-0')
 
@@ -361,7 +361,7 @@ def update_cart_container():
     main_page.cart_container.clear()
 
     user = shopping_cart.getUser()
-    factor = user.price_factor if user else 1.0
+    price_factor = user.price_factor if user else 1.0
 
     if shopping_cart.empty():
         with main_page.cart_container:
@@ -369,7 +369,11 @@ def update_cart_container():
     else:
         with main_page.cart_container:
             for product in shopping_cart.getProducts():
-                product.generateRow(shopping_cart.handleCartRemoval, factor)
+                ui_components.render_cart_item(
+                    product, 
+                    shopping_cart.handleCartRemoval, 
+                    price_factor
+                )
 
 def update_total_checkoutsum():
     subtotal = shopping_cart.calculateTotalCheckoutSum()
