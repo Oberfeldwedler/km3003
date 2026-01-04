@@ -227,7 +227,7 @@ class MySql:
         transaction_complete = self.insertPurchasesList(products_list, user)
         transaction_complete &= self.updateUserBalance(user, new_balance)
         if transaction_complete:
-            user = self.calculateAndUpdateUserBalance(user)
+            self.calculateAndUpdateUserBalance(user)
             self.connection.commit()
             return True
         else:
