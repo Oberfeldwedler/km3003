@@ -170,8 +170,21 @@ app.on_shutdown(onShutdown)
 # Scanner
 # ====================================================================
 def scannerStateChangeCallback(newScannerState):
-    #TODO
-    pass
+    """
+    Called immediately by the Scanner Thread when connection is lost or restored.
+    """
+
+    system_status["scanner"] = newScannerState
+
+    errors = []
+    if system_status["db"] != "up": errors.append("Datenbank down")
+    if newScannerState != "up": errors.append("Scanner down")
+
+    system_status["error_message"] = " & ".join(errors)
+
+    update_ui_display()
+
+
 
 def barcodeScannedCallback(barcode):
     """
@@ -323,6 +336,8 @@ def update_ui_display():
     """
     Central place for all UI changes. Synchronizes the UI with the shopping_cart data.
     """
+    logger.info('Refreshing UI.')
+
     update_member_container()
     update_cart_container()
     update_total_checkoutsum()
