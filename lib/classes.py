@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 from nicegui import ui, app
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,10 @@ class User:
         self.first_name = first_name
         self.last_name = last_name
         self.emoji = emoji
-        self.price_factor = float(price_factor)
+        # If the input price is a float, converting it directly to Decimal can preserve the floating point imprecision 
+        # (e.g., Decimal(1.1) # becomes 1.1000000000000000888...).
+        # Converting to string first (Decimal("1.1")) ensures it creates the exact number you expect.
+        self.price_factor = Decimal(str(price_factor))
 
 
 class Product:
@@ -19,7 +23,10 @@ class Product:
     def __init__(self, id, name, price, brand):
         self.id = id
         self.name = name
-        self.price = float(price)
+        # If the input price is a float, converting it directly to Decimal can preserve the floating point imprecision 
+        # (e.g., Decimal(1.1) # becomes 1.1000000000000000888...).
+        # Converting to string first (Decimal("1.1")) ensures it creates the exact number you expect.
+        self.price = Decimal(str(price))
         self.brand = brand
         self.sequential_product_row_number = Product.sequential_product_row_counter
         Product.sequential_product_row_counter += 1
@@ -74,7 +81,7 @@ class ShoppingCart:
         return success
   
     def calculateTotalCheckoutSum(self):
-        sum = 0.0
+        total_sum = Decimal('0.00')
         for product in self.__products_list:
-            sum += product.price
-        return sum
+            total_sum += product.price
+        return total_sum

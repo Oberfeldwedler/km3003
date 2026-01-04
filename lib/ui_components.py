@@ -1,4 +1,5 @@
 from nicegui import ui
+from decimal import Decimal
 from lib import classes
 
 def render_user_header(user, balance):
@@ -22,7 +23,7 @@ def render_cart_item(product, on_delete_callback, price_factor):
     """
     Renders a single row in the shopping cart.
     """
-    price = product.price * price_factor
+    price = product.price * Decimal(price_factor)
     price_text = f'{price:.2f} €'
 
     with ui.row().classes('w-full items-center bg-slate-50 px-4 py-3 rounded-lg border border-slate-100') as row:

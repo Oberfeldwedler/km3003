@@ -1,5 +1,5 @@
 import pymysql.cursors
-
+from decimal import Decimal
 from lib import classes
 
 import logging
@@ -93,7 +93,7 @@ class MySql:
                     dataDict['first_name'], 
                     dataDict['last_name'], 
                     dataDict['emoji'], 
-                    float(dataDict['price_factor'])
+                    Decimal(dataDict['price_factor'])
                 )
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")
@@ -119,7 +119,7 @@ class MySql:
                 return classes.Product(
                     dataDict['id'], 
                     dataDict['name'], 
-                    float(dataDict['sell_price']), 
+                    Decimal(dataDict['sell_price']), 
                     dataDict['brand']
                 )
             elif rowCount > 1:
@@ -170,16 +170,16 @@ class MySql:
             self.dictCursor.execute(get_sum_purchases, ( user.id, ) ) 
             result_purchases = self.dictCursor.fetchone()
             # Handle case where SUM returns None (NULL)
-            total_spent = result_purchases['total_spent'] if result_purchases['total_spent'] else 0.0
+            total_spent = Decimal(result_purchases['total_spent'] if result_purchases['total_spent'] else 0.0)
 
             # logger.debug(self.dictCursor.mogrify(get_sum_deposits, ( user.id, )))
             self.dictCursor.execute(get_sum_deposits, ( user.id, ) )
             result_deposits = self.dictCursor.fetchone()
             # Handle case where SUM returns None (NULL)
-            total_deposited = result_deposits['total_deposited'] if result_deposits['total_deposited'] else 0.0
+            total_deposited = Decimal(result_deposits['total_deposited'] if result_deposits['total_deposited'] else 0.0)
 
-            new_balance = float(total_deposited) -  float(total_spent)
-            new_balance = float(round(new_balance, 2))
+            new_balance = total_deposited -  total_spent
+            new_balance = new_balance.quantize(Decimal('0.01'))
 
             # logger.debug(self.dictCursor.mogrify(update_balance_query, (new_balance, user.id)))
             self.dictCursor.execute(update_balance, ( new_balance, user.id ) )
@@ -200,7 +200,6 @@ class MySql:
             new_balance -= product.price
         self.connection.begin()
         transaction_complete = self.insertPurchasesList(products_list, user)
-        transaction_complete &= self.updateUserBalance(user, new_balance)
         if transaction_complete:
             self.calculateAndUpdateUserBalance(user)
             self.connection.commit()
