@@ -49,17 +49,14 @@ class MySql:
             pass
 
     """
-    Checks whether there is a working database connection 
-    and reestablishes when there isn't.
+    Checks whether there is a working database connection and reestablishes when there isn't.
 
     Args: 
         None
     Returns:
-        connectionState: The connection state to the MySql server
-        connectionStateChanged: This indicates, whether the connection
-            state is now different to the one specified in 
-            __connectionState.
-            This information is used by the GUI to update the layout.
+        connectionState: The connection state to the MySql server connectionStateChanged: 
+        This indicates, whether the connection state is now different to the one specified in __connectionState.
+        This information is used by the GUI to update the layout.
     """
     def ensureDatabaseConnection(self):
         lastConnectionState = self.__connectionState
@@ -88,7 +85,7 @@ class MySql:
             logger.debug(self.dictCursor.mogrify(query, ( barcode, ) ))
             self.dictCursor.execute(query, ( barcode, ) )
             rowCount = self.dictCursor.rowcount
-            
+
             if rowCount == 1:
                 dataDict = self.dictCursor.fetchone()
                 return classes.User(
@@ -96,7 +93,7 @@ class MySql:
                     dataDict['first_name'], 
                     dataDict['last_name'], 
                     dataDict['emoji'], 
-                    float(dataDict['price_factor']), 
+                    float(dataDict['price_factor'])
                 )
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")
@@ -123,7 +120,8 @@ class MySql:
                     dataDict['id'], 
                     dataDict['name'], 
                     float(dataDict['sell_price']), 
-                    dataDict['brand'])
+                    dataDict['brand']
+                )
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique product! ({rowCount} results)")
             self.connection.commit()
@@ -136,10 +134,8 @@ class MySql:
 
 
     """
-    Searches in the database for users or products with the 
-    supplied barcode. If an entity can be identified by the 
-    code, an object containing the fetched information about
-    the entity is returned.
+    Searches in the database for users or products with the supplied barcode. 
+    If an entity can be identified by the code, an object containing the fetched information about the entity is returned.
 
     Args: 
         barcode: The content of a scanned barcode.
