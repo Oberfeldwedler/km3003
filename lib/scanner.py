@@ -90,11 +90,11 @@ class SerialScanner(Scanner):
             self.__connectionState = "up"
             logger.info("Connection to scanner established.")
             self.__scannerStateChangeCallback(self.__connectionState)
-        except:
+        except Exception as e:
             self.__connectionState = "down"
-            logging.debug("Connection to serial device could not be opened! Ignoring!")
+            # Change to logger.error or logger.warning to see why it failed
+            logger.error(f"Connection failed: {e}") 
             time.sleep(1)
-            pass
  
     """
     This Function tries to read a line from the scanner while no stop is requested. 
