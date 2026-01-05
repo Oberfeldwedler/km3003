@@ -1,6 +1,7 @@
 import logging
 from decimal import Decimal
 from nicegui import ui, app
+from collections import Counter
 
 logger = logging.getLogger(__name__)
 logger_event = logging.getLogger("event")
@@ -66,15 +67,26 @@ class ShoppingCart:
     def reset(self):
         self.__user = None
         self.__products_list = []
-        logger.info(f"Removed user and products due to reset.")
+        logger.info(f"Removed user and all products due to reset.")
+        logger_event.info(f"Removed user and all products due to reset.")
         self.uiUpdateCallback()
 
     def checkout(self):
         if not self.__user or not self.__products_list:
             return False
 
-        success = self.__database_caller.insertCheckout(self.__products_list, self.__user)
-                
+        user = self.__user
+        products = self.__products_list
+
+        success = self.__database_caller.insertCheckout(products, user)
+
+        # Count duplicates
+        counts = Counter(f"{p.brand} {p.name}" for p in products)
+        # Format as "Product xCount" (e.g., "Cola x3") and join with semicolons
+        summary = "; ".join([f"{name} x{count}" if count > 1 else name for name, count in counts.items()])
+        # Log concise message
+        logger_event.info(f"Checkout | {user.first_name} {user.last_name} ({user.id}) | {summary}")
+
         if success:
             self.reset()
 
