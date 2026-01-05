@@ -5,6 +5,7 @@ import logging
 import asyncio
 import configparser
 import logging.handlers
+from decimal import Decimal
 from nicegui import ui, app
 
 from lib import mysql
@@ -378,7 +379,7 @@ def update_cart_container():
 def update_total_checkoutsum():
     subtotal = shopping_cart.calculateTotalCheckoutSum()
     user = shopping_cart.getUser()
-    factor = user.price_factor if user else 1.0
+    factor = user.price_factor if user else Decimal(1.0)
     total = subtotal * factor
     main_page.total_checkout_sum.set_text(f'{total:.2f} €')
 
