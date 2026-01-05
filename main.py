@@ -184,9 +184,11 @@ def scannerStateChangeCallback(newScannerState):
 
     system_status["error_message"] = " & ".join(errors)
 
-    update_ui_display()
-
-
+    if main_loop and main_loop.is_running():
+        main_loop.call_soon_threadsafe(update_ui_display)
+    else:
+        logger.error("Main event loop is not available!")
+    
 
 def barcodeScannedCallback(barcode):
     """
@@ -200,9 +202,6 @@ def barcodeScannedCallback(barcode):
         logger.error("Main event loop is not available!")
 
 def processBarcode(barcode):
-    if not barcode:
-        return
-    
     result = database_caller.runBarcodeAgainstDatabase(barcode)
 
     if isinstance(result, classes.User):
@@ -214,12 +213,22 @@ def processBarcode(barcode):
         shopping_cart.addProduct(result)
         logger.info(f"Product '{result.brand} {result.name}' was detected!")
         logger_event.info(f"Product '{result.brand} {result.name}' was detected!")
-
+        
     else:
-        logger.info(f"Unknown barcode {barcode} was scanned!")
-        logger_event.info(f"Unknown barcode {barcode} was scanned!")
-        ui.notify('Unbekannter Barcode', type='negative', classes='text-2xl q-pa-lg font-bold')
-        pass
+        if hasattr(main_page, 'member_container'):  
+            try:
+                # 2. Use the client associated with the UI elements as the context
+                with main_page.member_container.client:
+                    ui.notify('Unbekannter Barcode', 
+                            type='negative', 
+                            classes='text-2xl q-pa-lg font-bold')
+            except RuntimeError:
+                # If the browser tab was closed, accessing .client or notifying might fail.
+                # We simply ignore this, as there is no user to notify.
+                pass
+        return
+
+
 
 def scanner_poller():
     logger.info('scanner_poller')
@@ -307,18 +316,18 @@ def main_page():
                 ui.label('Simulate Barcode:')
                 # When user presses Enter, it processes the barcode
                 sim_input = ui.input(on_change=lambda e: None) \
-                    .on('keydown.enter', lambda: [processBarcode(sim_input.value), sim_input.set_value('')])
+                    .on('keydown.enter', lambda: [barcodeScannedCallback(sim_input.value), sim_input.set_value('')])
             
             # Focus the input automatically so you can just type and press enter
             sim_input.run_method('focus')
 
         def refresh_overlay():
-                # Reagiert auf die Ergebnisse des Timers aus onStartup
-                if system_status["error_message"]:
-                    main_page.error_message.set_text(system_status["error_message"])
-                    main_page.error_overlay.visible = True
-                else:
-                    main_page.error_overlay.visible = False
+            # Reagiert auf die Ergebnisse des Timers aus onStartup
+            if system_status["error_message"]:
+                main_page.error_message.set_text(system_status["error_message"])
+                main_page.error_overlay.visible = True
+            else:
+                main_page.error_overlay.visible = False
 
         # Dieser Timer läuft im Browser und schaltet nur das Overlay um
         ui.timer(1.0, refresh_overlay)
@@ -337,13 +346,25 @@ def update_ui_display():
     """
     Central place for all UI changes. Synchronizes the UI with the shopping_cart data.
     """
+
+    if not hasattr(main_page, 'member_container'):
+        return
+
     logger.info('Refreshing UI.')
 
-    update_member_container()
-    update_cart_container()
-    update_total_checkoutsum()
-
-
+    try:
+        update_member_container()
+        update_cart_container()
+        update_total_checkoutsum()
+    except RuntimeError as e:
+            # Catch the specific error regarding deleted clients
+            if 'client' in str(e) and 'deleted' in str(e):
+                logger.warning("UI Update skipped: The browser client has been disconnected.")
+                # Optional: Remove the stale reference to prevent repeated warnings
+                del main_page.member_container 
+            else:
+                # Re-raise legitimate errors that aren't about the client being disconnected
+                raise e
 
 def update_member_container():
     """
@@ -354,7 +375,7 @@ def update_member_container():
     with main_page.member_container:
         if user:
             balance = database_caller.calculateAndUpdateUserBalance(user)
-            ui_components.render_user_header(balance)
+            ui_components.render_user_header(user, balance)
         else:
             ui.label("Bitte Ausweis scannen").classes('text-grey-7 pt-0')
 
