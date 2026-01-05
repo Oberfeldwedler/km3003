@@ -1,6 +1,6 @@
 import os
-import re
 import sys
+import time
 import logging
 import asyncio
 import configparser
@@ -19,8 +19,9 @@ config.read('km3003.conf')
 general_settings_dict = dict(config['general'])
 mysql_settings_dict = dict(config['mysql'])
 serial_settings_dict = dict(config['serial'])
-inactivity_timeout = int(general_settings_dict.get('screen_timeout_ms', '30000'))
-message_timeout = int(general_settings_dict.get('message_timeout_ms', '2000'))
+
+inactivity_timeout = int(general_settings_dict.get('inactivity_timeout_seconds', '30'))
+last_interaction_time = time.time()
 
 def str2bool(value : str) -> bool:
     return value.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'ja', 'jawoll', 'definitiv']
@@ -213,6 +214,9 @@ def barcodeScannedCallback(barcode):
 def processBarcode(barcode):
     result = database_caller.runBarcodeAgainstDatabase(barcode)
 
+    global last_interaction_time
+    last_interaction_time = time.time()
+
     if isinstance(result, classes.User):
         shopping_cart.addUser(result)
         logger.info(f"User '{result.first_name} {result.last_name}' was detected!")
@@ -350,6 +354,18 @@ def main_page():
             ui.icon('warning', color='white').classes('text-9xl mb-4')
             main_page.error_message = ui.label('').classes('text-white text-4xl font-bold text-center px-10')
             ui.spinner(size='lg', color='white').classes('mt-8')
+
+        def check_inactivity():
+            global last_interaction_time
+            
+            if (time.time() - last_interaction_time) > inactivity_timeout:
+                if shopping_cart.getUser() or not shopping_cart.empty():
+                    handle_reset()
+                    # Set the time to infinity to stop the the timer.
+                    last_interaction_time = float('inf')
+
+        # Run this check every 1.0 seconds
+        ui.timer(1.0, check_inactivity)
             
     # Populate the freshly built UI with the existing data from the global shopping_cart
     update_ui_display()
