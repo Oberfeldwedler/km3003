@@ -206,8 +206,8 @@ def processBarcode(barcode):
 
     if isinstance(result, classes.User):
         shopping_cart.addUser(result)
-        logger.info(f"User '{result.first_name} {result.last_name} {result.emoji}' was detected!")
-        logger_event.info(f"User '{result.first_name} {result.last_name} {result.emoji}' was detected!")
+        logger.info(f"User '{result.first_name} {result.last_name}' was detected!")
+        logger_event.info(f"User '{result.first_name} {result.last_name}' was detected!")
 
     elif isinstance(result, classes.Product):
         shopping_cart.addProduct(result)
