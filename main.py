@@ -341,6 +341,9 @@ def main_page():
             ui.icon('warning', color='white').classes('text-9xl mb-4')
             main_page.error_message = ui.label('').classes('text-white text-4xl font-bold text-center px-10')
             ui.spinner(size='lg', color='white').classes('mt-8')
+            
+    # Populate the freshly built UI with the existing data from the global shopping_cart
+    update_ui_display()
 
 def update_ui_display():
     """
