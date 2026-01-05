@@ -25,6 +25,15 @@ message_timeout = int(general_settings_dict.get('message_timeout_ms', '2000'))
 def str2bool(value : str) -> bool:
     return value.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'ja', 'jawoll', 'definitiv']
 
+native = str2bool(general_settings_dict['keep_on_top']),
+fullscreen = str2bool(general_settings_dict['fullscreen']),
+frameless = str2bool(general_settings_dict['frameless']),
+window_size = tuple(map(int, general_settings_dict['window_size'].split(',')))
+
+if str2bool(general_settings_dict['debug']):
+    native = False
+    fullscreen = False
+    frameless = False
 
 # ====================================================================
 # Logging
@@ -409,9 +418,18 @@ def update_total_checkoutsum():
 
 # Protected Entry Point
 if __name__ in {"__main__", "__mp_main__"}:
+    # Read "keep_on_top" from config, default to True for Kiosk mode
+    is_keep_on_top = str2bool(general_settings_dict.get('keep_on_top', 'True')) 
+
     ui.run(
         title='KM3004',
         reload=False,
         # Prevent the reloader from watching the log files to avoid restart loops
-        uvicorn_reload_excludes=f'{LOG_DIR}/*, *.log'
+        uvicorn_reload_excludes=f'{LOG_DIR}/*, *.log',
+
+        # Run as a standalone window (requires pywebview)
+        native=native,
+        fullscreen=fullscreen,
+        frameless=frameless,
+        window_size=window_size
     )
