@@ -106,15 +106,20 @@ logger = logging.getLogger(__name__)
 system_status = {"db": "up", "scanner": "up", "error_message": ""}
 
 async def backgroundHealthCheck():
-    """Läuft als eigenständiger Hintergrund-Task."""
+    """
+    This function is run continously as an async coroutine.
+    It periodically schedules checkSystemHealth() to be run in a seperate thread.
+    Then it waits 2 seconds.
+    """
     loop = asyncio.get_running_loop() # Get the loop once
     while True:
         try:
+            # Yields control of the thread until checkSystemHealth has finished.
             await loop.run_in_executor(None, checkSystemHealth)
         except Exception as e:
             logger.error(f"Fehler im Health-Check: {e}")
         
-        # Wait 2 seconds for the next check
+        # Yields control of the thread until 2 seconds have passed.
         await asyncio.sleep(2)
 
 def checkSystemHealth():
@@ -183,7 +188,9 @@ app.on_shutdown(onShutdown)
 # ====================================================================
 def scannerStateChangeCallback(newScannerState):
     """
-    Called immediately by the Scanner Thread when connection is lost or restored.
+    This function runs in the Scanner Thread.
+    It is called immediately by the Scanner Thread when connection is lost or restored.
+    It tells the Main Event Loop: "Please run update_ui_display() as soon as you can."
     """
 
     system_status["scanner"] = newScannerState
@@ -230,7 +237,7 @@ def processBarcode(barcode):
     else:
         if hasattr(main_page, 'member_container'):  
             try:
-                # 2. Use the client associated with the UI elements as the context
+                # Use the client associated with the UI elements as the context
                 with main_page.member_container.client:
                     ui.notify('Unbekannter Barcode', 
                             type='negative', 
@@ -241,14 +248,13 @@ def processBarcode(barcode):
                 pass
         return
 
-
-
 def scanner_poller():
     logger.info('scanner_poller')
     barcode = scanner_instance.getBarcode()
     if barcode:
         logger.info(f"New barcode was scanned: {barcode}")
         processBarcode(barcode)
+
 
 # ====================================================================
 # Buttons
@@ -432,7 +438,8 @@ def update_total_checkoutsum():
     total = subtotal * factor
     main_page.total_checkout_sum.set_text(f'{total:.2f} €')
 
-# Protected Entry Point
+# NiceGUI uses multiprocessing. On Windows, this guard is essential to prevent 
+# the server from starting recursively when worker processes import the script.
 if __name__ in {"__main__", "__mp_main__"}:
     # Read "keep_on_top" from config, default to True for Kiosk mode
     is_keep_on_top = str2bool(general_settings_dict.get('keep_on_top', 'True')) 
