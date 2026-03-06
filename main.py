@@ -3,6 +3,7 @@ import sys
 import time
 import logging
 import asyncio
+import pyautogui
 import configparser
 import logging.handlers
 from decimal import Decimal
@@ -182,6 +183,11 @@ def onShutdown():
     database_caller.closeConnection()
 app.on_shutdown(onShutdown)
 
+def wakeScreen():
+    # Move mouse 1 pixel and back to trigger 'activity'
+    logger.info('Wake screen by movin the curser 1 pixel.')
+    pyautogui.moveRel(1, 0)
+    pyautogui.moveRel(-1, 0)
 
 # ====================================================================
 # Scanner
@@ -251,6 +257,7 @@ def processBarcode(barcode):
 def scanner_poller():
     logger.info('scanner_poller')
     barcode = scanner_instance.getBarcode()
+    wakeScreen()
     if barcode:
         logger.info(f"New barcode was scanned: {barcode}")
         processBarcode(barcode)
