@@ -8,6 +8,8 @@ dependencies = [
     "cryptography>=46.0.3",
     "nicegui>=3.4.1",
     "pymysql>=1.1.2",
+    "pyqt6>=6.10.2",
+    "pyqt6-webengine>=6.10.0",
     "pyserial>=3.5",
     "pywebview>=6.1",
 ]
