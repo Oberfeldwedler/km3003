@@ -98,7 +98,8 @@ class MySql:
                     dataDict['first_name'], 
                     dataDict['last_name'], 
                     dataDict['emoji'], 
-                    Decimal(dataDict['price_factor'])
+                    Decimal(dataDict['price_factor']),
+                    dataDict['enabled']
                 )
             elif rowCount > 1:
                 logger.error(f"Barcode {barcode} does not identify a unique user! ({rowCount} results)")

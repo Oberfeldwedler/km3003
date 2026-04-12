@@ -219,33 +219,47 @@ def barcodeScannedCallback(barcode):
         logger.error("Main event loop is not available!")
 
 def processBarcode(barcode):
-    result = database_caller.runBarcodeAgainstDatabase(barcode)
 
-    global last_interaction_time
-    last_interaction_time = time.time()
+    if not hasattr(main_page, 'member_container'):
+        return
 
-    if isinstance(result, classes.User):
-        shopping_cart.addUser(result)
-        logger.info(f"User '{result.first_name} {result.last_name}' was detected!")
-        logger_event.info(f"User '{result.first_name} {result.last_name}' was detected!")
+    with main_page.member_container.client: 
+        result = database_caller.runBarcodeAgainstDatabase(barcode)
 
-    elif isinstance(result, classes.Product):
-        shopping_cart.addProduct(result)
-        logger.info(f"Product '{result.brand} {result.name}' was detected!")
-        logger_event.info(f"Product '{result.brand} {result.name}' was detected!")
+        global last_interaction_time
+        last_interaction_time = time.time()
+
+        if isinstance(result, classes.User):
+            if result.enabled:
+                shopping_cart.addUser(result)
+                logger.info(f"User '{result.first_name} {result.last_name}' was detected!")
+                logger_event.info(f"User '{result.first_name} {result.last_name}' was detected!")
+            else:
+                # ui.notify('Internal Database Error', 
+                # type='negative',
+                # classes='text-2xl q-pa-lg font-bold')
+
+                ui.notify('INTERNAL DATABASE FAILURE: USER ERROR', 
+                    color='red-10',        # Deeper, blood-red color
+                    position='center',
+                    multi_line=True,       # Allows for larger vertical height
+                    icon='dangerous',      # Use a "stop" or "danger" icon
+                    timeout=0,
+                    actions=[{'label': 'CLICK TO ACKNOWLEDGE ERROR', 'color': 'white'}],
+                    classes='text-4xl p-16 border-8 border-white font-black uppercase tracking-tighter'
+                
+
+)
+
+        elif isinstance(result, classes.Product):
+            shopping_cart.addProduct(result)
+            logger.info(f"Product '{result.brand} {result.name}' was detected!")
+            logger_event.info(f"Product '{result.brand} {result.name}' was detected!")
         
-    else:
-        if hasattr(main_page, 'member_container'):  
-            try:
-                # Use the client associated with the UI elements as the context
-                with main_page.member_container.client:
-                    ui.notify('Unbekannter Barcode', 
-                            type='negative', 
-                            classes='text-2xl q-pa-lg font-bold')
-            except RuntimeError:
-                # If the browser tab was closed, accessing .client or notifying might fail.
-                # We simply ignore this, as there is no user to notify.
-                pass
+        else:
+            ui.notify('Unbekannter Barcode', 
+                    type='negative', 
+                    classes='text-2xl q-pa-lg font-bold')
         return
 
 def scanner_poller():

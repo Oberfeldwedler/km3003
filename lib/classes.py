@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 logger_event = logging.getLogger("event")
 
 class User:
-    def __init__(self, id, first_name, last_name, emoji, price_factor):
+    def __init__(self, id, first_name, last_name, emoji, price_factor, enabled):
         self.id = id
         self.first_name = first_name
         self.last_name = last_name
@@ -16,6 +16,7 @@ class User:
         # (e.g., Decimal(1.1) # becomes 1.1000000000000000888...).
         # Converting to string first (Decimal("1.1")) ensures it creates the exact number you expect.
         self.price_factor = Decimal(str(price_factor))
+        self.enabled = enabled
 
 
 class Product:
