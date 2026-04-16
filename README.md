@@ -24,20 +24,35 @@ https://ei-wiki.oth-regensburg.de/wiki/K%C3%BChlschrankbuchungssystem_KM3003
 
 `uv` automatically manages Python versions and dependencies, keeping your system clean.
 
-1.  **Install uv** (if not already installed):
-
-    https://docs.astral.sh/uv/getting-started/installation/
-
-
-2. Add user to dialout group
+1. Add user to dialout group
     ```
     sudo usermod -aF dialout igel
     ```
 
-3. Install dependencies
+2. Install dependencies
     ```
-    sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.1 libqt6webengine6-data libqt6webenginecore6 libqt6webenginewidgets6
+    sudo apt install \
+    python3-pyqt6 \
+    python3-pyqt6.qtwebengine \
+    libqt6webenginecore6-bin
+    python3-tk \
+    scrot \
+    python3-venv \
+    python3-pip
     ```
+
+3.  Clone the project from Github
+    ```
+    https://github.com/Oberfeldwedler/km3003.git
+    ```
+
+4. Prepare venv
+
+```
+python3 -m venv --system-site-packages .venv
+source .venv/bin/activate
+pip install nicegui[native] pyautogui cryptography pymysql pyserial qtpy PyQt6-WebEngine
+```
 
 4. Calibrate for touchscreen manually or execute `calibrate_touchscreen.sh`
 
@@ -48,22 +63,12 @@ https://ei-wiki.oth-regensburg.de/wiki/K%C3%BChlschrankbuchungssystem_KM3003
     ```
 
 5.  Configure `calibrate_touchscreen.sh` to run on Login and setup screen timeout
+    Don't forget to make the script executable with `chmod +x calibrate_touchscreen.sh`
 
-6.  Clone the project from Github
-    ```
-    https://github.com/Oberfeldwedler/km3003.git
-    ```
 
-7.  **Sync Dependencies**:
-    Navigate to the project folder and run:
+6.  **Run the App** and add to autostart
     ```bash
-    uv sync
-    ```
-    *This will install the correct Python version (>=3.12) and all libraries defined in `pyproject.toml`.*
-
-8.  **Run the App**:
-    ```bash
-    uv run main.py
+    python3 main.py
     ```
 
 ## Configuration
@@ -86,3 +91,16 @@ https://ei-wiki.oth-regensburg.de/wiki/K%C3%BChlschrankbuchungssystem_KM3003
     * Connect to the database (e.g., via MySQL Workbench).
     * Execute the creation statements found in `km3003_docs` or the resource folder.
     * Import initial users and products.
+
+## Use python webserver to copy paste stuff from AI
+
+Execute this in this dir and create an index.html
+```
+sudo python -m http.server 80
+```
+
+## Install vnc
+
+´´´
+sudo apt install krfb
+´´´

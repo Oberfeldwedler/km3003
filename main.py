@@ -6,13 +6,16 @@ import asyncio
 import configparser
 import logging.handlers
 from decimal import Decimal
+
 from nicegui import ui, app
+# Pin version to PyQt6 
+os.environ['PYWEBVIEW_GUI'] = 'qt'
+os.environ['QT_API'] = 'pyqt6'
 
 from lib import mysql
 from lib import classes
 from lib import scanner
 from lib import ui_components
-
 
 config = configparser.ConfigParser()
 config.read('km3003.conf')
