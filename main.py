@@ -3,6 +3,7 @@ import sys
 import time
 import logging
 import asyncio
+import subprocess
 import configparser
 import logging.handlers
 from decimal import Decimal
@@ -185,6 +186,18 @@ def onShutdown():
     database_caller.closeConnection()
 app.on_shutdown(onShutdown)
 
+def wakeScreen():
+    try:
+        subprocess.run([
+            "qdbus", 
+            "org.freedesktop.ScreenSaver", 
+            "/org/freedesktop/ScreenSaver", 
+            "SimulateUserActivity"
+        ], check=True)
+        logger.info("Wake signal sent to KDE.")
+    except subprocess.CalledProcessError:
+        logger.warning("Failed to wake screen. Is D-Bus running?")
+
 
 # ====================================================================
 # Scanner
@@ -222,6 +235,8 @@ def barcodeScannedCallback(barcode):
         logger.error("Main event loop is not available!")
 
 def processBarcode(barcode):
+
+    wakeScreen()
 
     if not hasattr(main_page, 'member_container'):
         return
