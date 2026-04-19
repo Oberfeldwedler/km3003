@@ -18,7 +18,7 @@ from lib import scanner
 from lib import ui_components
 
 config = configparser.ConfigParser()
-config.read('km3003.conf')
+config.read('km.conf')
 general_settings_dict = dict(config['general'])
 mysql_settings_dict = dict(config['mysql'])
 serial_settings_dict = dict(config['serial'])
@@ -44,7 +44,7 @@ if str2bool(general_settings_dict['debug']):
 # ====================================================================
 
 LOG_DIR = general_settings_dict.get('log_dir', './logs')
-LOG_FILE = os.path.join(LOG_DIR, "km3003.log")
+LOG_FILE = os.path.join(LOG_DIR, "km.log")
 EVENT_LOG = os.path.join(LOG_DIR, "events.csv") # Separate file for events with human interaction
 
 if not os.path.exists(f"{LOG_DIR}"):
@@ -160,7 +160,7 @@ def onStartup():
         try:
             # This only works if no other process (like the reloader) has the file open
             file_handler.doRollover()
-            logger.info("=========== NEW START OF KM3003 ===========")
+            logger.info("=========== NEW START OF KM ===========")
         except PermissionError:
             # On Windows, if the Manager process is still holding a lock, 
             # we simply skip the rollover for this specific process.

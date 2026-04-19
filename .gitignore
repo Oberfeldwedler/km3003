@@ -1,4 +1,4 @@
-km3003.conf
+km.conf
 logs/**
 
 # --- uv / Python Virtual Environments ---
